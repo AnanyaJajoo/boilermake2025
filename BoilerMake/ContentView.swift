@@ -201,8 +201,8 @@ struct Setting: View {
 struct GridView: View {
     let images = [
         ("lebronboy", "Lakers Tickets", "The Los Angeles Lakers are a historic NBA team with 17 championships. LeBron James, a four-time NBA champion, joined the team in 2018 and led them to the 2020 title, further cementing his legacy as one of the greatest players of all time."),
-        ("chanel", "Chanel No. 5", "Chanel No. 5 has a luxurious, powdery floral scent with notes of jasmine, rose, and ylang-ylang, enhanced by aldehydes for a soft, airy feel, and a warm, woody vanilla base. \n https://www.chanel.com/us/fragrance/women/c/7x1x1x30/n5/")
-    ] // Image names, labels, and descriptions
+        ("chanel", "Chanel No. 5", "Chanel No. 5 has a luxurious, powdery floral scent with notes of jasmine, rose, and ylang-ylang, enhanced by aldehydes for a soft, airy feel, and a warm, woody vanilla base.")
+    ];  // Image names, labels, and descriptions
 
     let columns = [
         GridItem(.flexible()),
@@ -264,6 +264,14 @@ struct DetailView: View {
                 .font(.body)
                 .padding()
                 .multilineTextAlignment(.center)
+            
+            if label == "Chanel No. 5" {
+                            Link("Visit the Chanel website", destination: URL(string: "https://www.chanel.com/us/fragrance/women/c/7x1x1x30/n5/")!)
+                                .font(.body)
+                                .padding()
+                                .foregroundColor(.blue)
+                                .underline()
+                        }
 
             Spacer()
         }
@@ -271,6 +279,31 @@ struct DetailView: View {
         .navigationBarTitleDisplayMode(.inline)
     }
 }
+
+func addLinks(to text: String) -> AttributedString {
+        var attributedString = AttributedString(text)
+
+        // Regex pattern to find URLs
+        let pattern = "(https?://[a-zA-Z0-9./?=_-]+)"
+        if let regex = try? NSRegularExpression(pattern: pattern, options: []) {
+            let matches = regex.matches(in: text, options: [], range: NSRange(text.startIndex..., in: text))
+            
+            for match in matches {
+                if let range = Range(match.range, in: text) {
+                    let urlString = String(text[range])
+                    if let url = URL(string: urlString) {
+                        // Use the correct range for AttributedString
+                        if let attributedRange = attributedString.range(of: urlString) {
+                            attributedString[attributedRange].link = url
+                        }
+                    }
+                }
+            }
+        }
+        
+        return attributedString
+    }
+
 
 
 
