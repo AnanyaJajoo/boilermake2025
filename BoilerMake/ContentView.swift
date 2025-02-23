@@ -2,7 +2,7 @@ import SwiftUI
 import RealityKit
 
 struct ContentView: View {
-    @State private var isLandingPageActive = true // Track if Landing Page is active
+    @State private var isLandingPageActive = true
     @State private var isMenuExpanded = false
     @State private var isARActive = true
     @State private var language: String = "English"
@@ -12,9 +12,8 @@ struct ContentView: View {
         ZStack {
             if isLandingPageActive {
                 LandingPage()
-                    .transition(.opacity) // Smooth fade-out transition after 10 seconds
+                    .transition(.opacity)
             } else {
-                // Main Content (your original view)
                 NavigationStack {
                     ZStack {
                         if isARActive {
@@ -37,7 +36,7 @@ struct ContentView: View {
                                         CircleMenuItem(icon: "heart.fill")
 
                                         NavigationLink {
-                                            AppView(isARActive: $isARActive, userName: $userName)
+                                            GridView()
                                         } label: {
                                             Image(systemName: "archivebox.fill")
                                                 .font(.system(size: 20))
@@ -84,7 +83,6 @@ struct ContentView: View {
             }
         }
         .onAppear {
-            // Set a timer to hide the landing page after 10 seconds
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
                 withAnimation {
                     isLandingPageActive = false
@@ -193,6 +191,73 @@ struct Setting: View {
         }
     }
 }
+
+struct GridView: View {
+    let images = [("freakbob", "FreakBob"), ("slynklogo2", "Slynk Logo 2")] // Image names and labels
+
+    let columns = [
+        GridItem(.flexible()),
+        GridItem(.flexible())
+    ]
+
+    var body: some View {
+        ScrollView {
+            LazyVGrid(columns: columns, spacing: 16) {
+                ForEach(images, id: \.0) { imageName, label in
+                    NavigationLink(destination: DetailView(imageName: imageName, label: label)) {
+                        VStack {
+                            Image(imageName)
+                                .resizable()
+                                .scaledToFit()
+                                .frame(height: 150)
+                                .cornerRadius(8)
+                                .overlay(RoundedRectangle(cornerRadius: 8)
+                                    .stroke(Color.gray, lineWidth: 2)) // Box outline
+                                .shadow(radius: 4)
+
+                            Text(label)
+                                .font(.headline)
+                                .foregroundColor(.black)
+                        }
+                        .padding()
+                        .background(Color.white)
+                        .cornerRadius(12)
+                        .shadow(radius: 5)
+                    }
+                }
+            }
+            .padding()
+        }
+        .navigationTitle("Saved Files")
+        .navigationBarTitleDisplayMode(.inline)
+    }
+}
+
+struct DetailView: View {
+    let imageName: String
+    let label: String
+
+    var body: some View {
+        VStack {
+            Image(imageName)
+                .resizable()
+                .scaledToFit()
+                .frame(height: 300)
+                .cornerRadius(12)
+                .shadow(radius: 6)
+
+            Text(label)
+                .font(.title)
+                .padding()
+
+            Spacer()
+        }
+        .padding()
+        .navigationTitle(label)
+        .navigationBarTitleDisplayMode(.inline)
+    }
+}
+
 
 struct CircleMenuItem: View {
     var icon: String
