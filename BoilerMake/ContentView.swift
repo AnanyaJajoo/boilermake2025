@@ -199,7 +199,10 @@ struct Setting: View {
 }
 
 struct GridView: View {
-    let images = [("freakbob", "FreakBob"), ("slynklogo2", "Slynk Logo 2")] // Image names and labels
+    let images = [
+        ("lebronboy", "Lakers Tickets", "The Los Angeles Lakers are a historic NBA team with 17 championships. LeBron James, a four-time NBA champion, joined the team in 2018 and led them to the 2020 title, further cementing his legacy as one of the greatest players of all time."),
+        ("chanel", "Chanel No. 5", "Chanel No. 5 has a luxurious, powdery floral scent with notes of jasmine, rose, and ylang-ylang, enhanced by aldehydes for a soft, airy feel, and a warm, woody vanilla base. \n https://www.chanel.com/us/fragrance/women/c/7x1x1x30/n5/")
+    ] // Image names, labels, and descriptions
 
     let columns = [
         GridItem(.flexible()),
@@ -209,8 +212,8 @@ struct GridView: View {
     var body: some View {
         ScrollView {
             LazyVGrid(columns: columns, spacing: 16) {
-                ForEach(images, id: \.0) { imageName, label in
-                    NavigationLink(destination: DetailView(imageName: imageName, label: label)) {
+                ForEach(images, id: \.0) { imageName, label, description in
+                    NavigationLink(destination: DetailView(imageName: imageName, label: label, description: description)) {
                         VStack {
                             Image(imageName)
                                 .resizable()
@@ -242,9 +245,14 @@ struct GridView: View {
 struct DetailView: View {
     let imageName: String
     let label: String
+    let description: String
 
     var body: some View {
         VStack {
+            Text(label)
+                .font(.title)
+                .padding()
+
             Image(imageName)
                 .resizable()
                 .scaledToFit()
@@ -252,17 +260,18 @@ struct DetailView: View {
                 .cornerRadius(12)
                 .shadow(radius: 6)
 
-            Text(label)
-                .font(.title)
+            Text(description)
+                .font(.body)
                 .padding()
+                .multilineTextAlignment(.center)
 
             Spacer()
         }
         .padding()
-        .navigationTitle(label)
         .navigationBarTitleDisplayMode(.inline)
     }
 }
+
 
 
 struct CircleMenuItem: View {
@@ -292,21 +301,25 @@ struct ARViewContainer: UIViewRepresentable {
         let config = ARWorldTrackingConfiguration()
         
         // Create reference image programmatically
+        let referenceImage2 = createReferenceImage2()
         if let referenceImage = createReferenceImage() {
-            config.detectionImages = Set([referenceImage])
+            config.detectionImages = Set([referenceImage, referenceImage2!])
             config.maximumNumberOfTrackedImages = 1
-            print("✅ Reference image created successfully")
+            print("✅ Reference images created successfully")
         } else {
             print("❌ Failed to create reference image")
         }
         
         // Debug tracking quality
-        arView.debugOptions = [.showWorldOrigin, .showFeaturePoints]
+        // arView.debugOptions = [.showWorldOrigin, .showFeaturePoints]
         
         arView.session.run(config)
         arView.session.delegate = context.coordinator
         context.coordinator.arView = arView
         context.coordinator.preloadTexture()
+        context.coordinator.preloadTexture2()
+        context.coordinator.preloadTextureL()
+        context.coordinator.preloadTextureC()
         
         return arView
     }
@@ -333,10 +346,28 @@ struct ARViewContainer: UIViewRepresentable {
         return referenceImage
     }
     
+    func createReferenceImage2() -> ARReferenceImage? {
+        // Use the image you want to detect
+        guard let image = UIImage(named: "chanel")?.cgImage else {
+            print("❌ Failed to load target image")
+            return nil
+        }
+        
+        // Set the physical size of the image in meters (adjust as needed)
+        let physicalWidth = 0.8  // 20cm wide
+        let referenceImage = ARReferenceImage(image, orientation: .up, physicalWidth: physicalWidth)
+        referenceImage.name = "chanel"
+        
+        return referenceImage
+    }
+    
     class Coordinator: NSObject, ARSessionDelegate {
         weak var arView: ARView?
         var cachedTexture: TextureResource?
         var player: AVPlayer?
+        var player2: AVPlayer?
+        var playerL: AVPlayer?
+        var playerC: AVPlayer?
         var anchors: [UUID: AnchorEntity] = [:]
         
         func preloadTexture() {
@@ -344,7 +375,7 @@ struct ARViewContainer: UIViewRepresentable {
                 do {
                     print("🔄 Preloading overlay texture 'bob'...")
                     // cachedTexture = try await TextureResource.load(named: "bob")
-                    let videoURL = Bundle.main.url(forResource: "lebron_2", withExtension: "mp4")
+                    let videoURL = Bundle.main.url(forResource: "lebron_1", withExtension: "mp4")
                     
         
                     do {
@@ -363,6 +394,82 @@ struct ARViewContainer: UIViewRepresentable {
                 }
             }
         }
+        
+        func preloadTexture2() {
+            Task {
+                do {
+                    print("🔄 Preloading overlay texture 'bob'...")
+                    // cachedTexture = try await TextureResource.load(named: "bob")
+                    let videoURL = Bundle.main.url(forResource: "chanel_1", withExtension: "mp4")
+                    
+        
+                    do {
+                            try AVAudioSession.sharedInstance().setCategory(.playback, mode: .default)
+                            try AVAudioSession.sharedInstance().setActive(true)
+                            } catch {
+                                print("Audio session setup failed: \(error)")
+                            }
+                    print("✅ Overlay texture preloaded successfully")
+                    
+                    player2 = AVPlayer(url: videoURL!)
+                    player2?.isMuted = false
+                } catch {
+                    print("❌ Failed to preload overlay texture: \(error)")
+                    print("Make sure 'bob' image is added to your Assets catalog")
+                }
+            }
+        }
+        
+        func preloadTextureL() {
+            Task {
+                do {
+                    print("🔄 Preloading overlay texture 'bob'...")
+                    // cachedTexture = try await TextureResource.load(named: "bob")
+                    let videoURL = Bundle.main.url(forResource: "lebron_2", withExtension: "mp4")
+                    
+        
+                    do {
+                            try AVAudioSession.sharedInstance().setCategory(.playback, mode: .default)
+                            try AVAudioSession.sharedInstance().setActive(true)
+                            } catch {
+                                print("Audio session setup failed: \(error)")
+                            }
+                    print("✅ Overlay texture preloaded successfully")
+                    
+                    playerL = AVPlayer(url: videoURL!)
+                    playerL?.isMuted = false
+                } catch {
+                    print("❌ Failed to preload overlay texture: \(error)")
+                    print("Make sure 'bob' image is added to your Assets catalog")
+                }
+            }
+        }
+        
+        func preloadTextureC() {
+            Task {
+                do {
+                    print("🔄 Preloading overlay texture 'bob'...")
+                    // cachedTexture = try await TextureResource.load(named: "bob")
+                    let videoURL = Bundle.main.url(forResource: "chanel_2", withExtension: "mp4")
+                    
+        
+                    do {
+                            try AVAudioSession.sharedInstance().setCategory(.playback, mode: .default)
+                            try AVAudioSession.sharedInstance().setActive(true)
+                            } catch {
+                                print("Audio session setup failed: \(error)")
+                            }
+                    print("✅ Overlay texture preloaded successfully")
+                    
+                    playerC = AVPlayer(url: videoURL!)
+                    playerC?.isMuted = false
+                } catch {
+                    print("❌ Failed to preload overlay texture: \(error)")
+                    print("Make sure 'bob' image is added to your Assets catalog")
+                }
+            }
+        }
+        
         
         func session(_ session: ARSession, didAdd anchors: [ARAnchor]) {
             for anchor in anchors {
@@ -389,19 +496,50 @@ struct ARViewContainer: UIViewRepresentable {
                 
                 let imageEntity = ModelEntity(mesh: planeMesh)
                 // var material = UnlitMaterial()
-                let videoMaterial = VideoMaterial(avPlayer: player!)
-                // material.baseColor = MaterialColorParameter.texture(texture)
-                imageEntity.model?.materials = [videoMaterial]
+                if (imageAnchor.name == "lebronboy") {
+                    print("Lebron Boy Detected")
+                    var videoMaterial = VideoMaterial(avPlayer: player!)
+                    // material.baseColor = MaterialColorParameter.texture(texture)
+                    imageEntity.model?.materials = [videoMaterial]
+                    player!.seek(to: .zero)
+                    player!.play()
+                    
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 12.0) {
+                        videoMaterial = VideoMaterial(avPlayer: self.playerL!)
+                        imageEntity.model?.materials = [videoMaterial]
+                        // Code to play another video here
+                        print("Playing next video")
+                        // Replace this with your logic for playing another video
+                        self.playerL!.seek(to: .zero)
+                        self.playerL!.play()
+                    }
+                }
+                else {
+                    print("Detected Chanel")
+                    var videoMaterial = VideoMaterial(avPlayer: player2!)
+                    imageEntity.model?.materials = [videoMaterial]
+                    player2?.seek(to: .zero)
+                    player2!.play()
+                    
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 12.0) {
+                        videoMaterial = VideoMaterial(avPlayer: self.playerC!)
+                        imageEntity.model?.materials = [videoMaterial]
+                        // Code to play another video here
+                        print("Playing next video")
+                        // Replace this with your logic for playing another video
+                        self.playerC!.seek(to: .zero)
+                        self.playerC!.play()
+                    }
+                    
+                }
+                
                 
                 let anchorEntity = AnchorEntity(anchor: imageAnchor)
                 anchorEntity.addChild(imageEntity)
-                player!.play()
                 print("Player Playing")
                 imageEntity.position.z = 0.001
                 imageEntity.setPosition(SIMD3(0, 0, 0), relativeTo: anchorEntity)
                 imageEntity.setOrientation(simd_quatf(angle: -.pi / 2, axis: [1, 0, 0]), relativeTo: anchorEntity)
-
-
                 
                 DispatchQueue.main.async {
                     print("➕ Adding overlay to scene")
