@@ -1,2 +1,6 @@
 GroundingDINO
 Grounded-SAM-2
+sam_vit_h_4b8939.pth
+vithbsamcheckpoint.pth
+yolov8n.pt
+yolov8x.pt
