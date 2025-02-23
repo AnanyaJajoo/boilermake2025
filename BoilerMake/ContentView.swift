@@ -34,14 +34,12 @@ struct ContentView: View {
 
                                 if isMenuExpanded {
                                     VStack(spacing: 12) {
-                                        CircleMenuItem(icon: "heart", action: {
-                                            print("heart tapped")
-                                        })
+                                        CircleMenuItem(icon: "heart.fill")
 
                                         NavigationLink {
                                             AppView(isARActive: $isARActive, userName: $userName)
                                         } label: {
-                                            Image(systemName: "square")
+                                            Image(systemName: "archivebox.fill")
                                                 .font(.system(size: 20))
                                                 .frame(width: 50, height: 50)
                                                 .background(Color.white)
@@ -53,7 +51,7 @@ struct ContentView: View {
                                         NavigationLink {
                                             Setting(isARActive: $isARActive, language: $language, userName: $userName)
                                         } label: {
-                                            Image(systemName: "circle")
+                                            Image(systemName: "gearshape.fill")
                                                 .font(.system(size: 20))
                                                 .frame(width: 50, height: 50)
                                                 .background(Color.white)
@@ -198,17 +196,20 @@ struct Setting: View {
 
 struct CircleMenuItem: View {
     var icon: String
-    var action: () -> Void
+    @State private var isTapped = false // Track button state
 
     var body: some View {
-        Button(action: action) {
+        Button(action: {
+            isTapped.toggle() // Toggle the state
+        }) {
             Image(systemName: icon)
                 .font(.system(size: 20))
                 .frame(width: 50, height: 50)
                 .background(Color.white)
-                .foregroundColor(.blue)
+                .foregroundColor(isTapped ? .pink : .blue) // Change color when tapped
                 .clipShape(Circle())
                 .shadow(radius: 3)
         }
     }
 }
+
