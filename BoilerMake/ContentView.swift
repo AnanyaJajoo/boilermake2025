@@ -320,7 +320,7 @@ struct ARViewContainer: UIViewRepresentable {
     // Create reference image programmatically
     func createReferenceImage() -> ARReferenceImage? {
         // Use the image you want to detect
-        guard let image = UIImage(named: "freaky")?.cgImage else {
+        guard let image = UIImage(named: "lebronboy")?.cgImage else {
             print("❌ Failed to load target image")
             return nil
         }
@@ -328,7 +328,7 @@ struct ARViewContainer: UIViewRepresentable {
         // Set the physical size of the image in meters (adjust as needed)
         let physicalWidth = 0.8  // 20cm wide
         let referenceImage = ARReferenceImage(image, orientation: .up, physicalWidth: physicalWidth)
-        referenceImage.name = "freaky"
+        referenceImage.name = "lebronboy"
         
         return referenceImage
     }
@@ -336,14 +336,27 @@ struct ARViewContainer: UIViewRepresentable {
     class Coordinator: NSObject, ARSessionDelegate {
         weak var arView: ARView?
         var cachedTexture: TextureResource?
+        var player: AVPlayer?
         var anchors: [UUID: AnchorEntity] = [:]
         
         func preloadTexture() {
             Task {
                 do {
                     print("🔄 Preloading overlay texture 'bob'...")
-                    cachedTexture = try await TextureResource.load(named: "bob")
+                    // cachedTexture = try await TextureResource.load(named: "bob")
+                    let videoURL = Bundle.main.url(forResource: "lebron_2", withExtension: "mp4")
+                    
+        
+                    do {
+                            try AVAudioSession.sharedInstance().setCategory(.playback, mode: .default)
+                            try AVAudioSession.sharedInstance().setActive(true)
+                            } catch {
+                                print("Audio session setup failed: \(error)")
+                            }
                     print("✅ Overlay texture preloaded successfully")
+                    
+                    player = AVPlayer(url: videoURL!)
+                    player?.isMuted = false
                 } catch {
                     print("❌ Failed to preload overlay texture: \(error)")
                     print("Make sure 'bob' image is added to your Assets catalog")
@@ -369,19 +382,22 @@ struct ARViewContainer: UIViewRepresentable {
                 let planeMesh = MeshResource.generatePlane(width: physicalWidth,
                                                          height: physicalHeight)
                 
-                guard let texture = cachedTexture else {
+                /*guard let texture = cachedTexture else {
                     print("❌ Overlay texture not preloaded")
                     return
-                }
+                }*/
                 
                 let imageEntity = ModelEntity(mesh: planeMesh)
-                var material = UnlitMaterial()
-                material.baseColor = MaterialColorParameter.texture(texture)
-                imageEntity.model?.materials = [material]
+                // var material = UnlitMaterial()
+                let videoMaterial = VideoMaterial(avPlayer: player!)
+                // material.baseColor = MaterialColorParameter.texture(texture)
+                imageEntity.model?.materials = [videoMaterial]
                 
                 let anchorEntity = AnchorEntity(anchor: imageAnchor)
                 anchorEntity.addChild(imageEntity)
-                imageEntity.position.z = 0
+                player!.play()
+                print("Player Playing")
+                imageEntity.position.z = 0.001
                 imageEntity.setPosition(SIMD3(0, 0, 0), relativeTo: anchorEntity)
                 imageEntity.setOrientation(simd_quatf(angle: -.pi / 2, axis: [1, 0, 0]), relativeTo: anchorEntity)
 
