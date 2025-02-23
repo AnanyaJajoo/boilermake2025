@@ -1,5 +1,7 @@
 import SwiftUI
 import RealityKit
+import ARKit
+import UIKit
 
 struct ContentView: View {
     @State private var isLandingPageActive = true
@@ -17,6 +19,7 @@ struct ContentView: View {
                 NavigationStack {
                     ZStack {
                         if isARActive {
+                            /*
                             RealityView { content in
                                 let anchor = AnchorEntity(.camera)
                                 content.add(anchor)
@@ -24,6 +27,9 @@ struct ContentView: View {
                             }
                             .edgesIgnoringSafeArea(.all)
                             .id(isARActive)
+                             */
+                            ARViewContainer()
+                                .edgesIgnoringSafeArea(.all)
                         }
 
                         VStack {
@@ -274,6 +280,127 @@ struct CircleMenuItem: View {
                 .foregroundColor(isTapped ? .pink : .blue) // Change color when tapped
                 .clipShape(Circle())
                 .shadow(radius: 3)
+        }
+    }
+}
+
+struct ARViewContainer: UIViewRepresentable {
+    func makeUIView(context: Context) -> ARView {
+        let arView = ARView(frame: .zero)
+        
+        // Configure AR session for image tracking
+        let config = ARWorldTrackingConfiguration()
+        
+        // Create reference image programmatically
+        if let referenceImage = createReferenceImage() {
+            config.detectionImages = Set([referenceImage])
+            config.maximumNumberOfTrackedImages = 1
+            print("✅ Reference image created successfully")
+        } else {
+            print("❌ Failed to create reference image")
+        }
+        
+        // Debug tracking quality
+        arView.debugOptions = [.showWorldOrigin, .showFeaturePoints]
+        
+        arView.session.run(config)
+        arView.session.delegate = context.coordinator
+        context.coordinator.arView = arView
+        context.coordinator.preloadTexture()
+        
+        return arView
+    }
+    
+    func updateUIView(_ uiView: ARView, context: Context) {}
+    
+    func makeCoordinator() -> Coordinator {
+        Coordinator()
+    }
+    
+    // Create reference image programmatically
+    func createReferenceImage() -> ARReferenceImage? {
+        // Use the image you want to detect
+        guard let image = UIImage(named: "freaky")?.cgImage else {
+            print("❌ Failed to load target image")
+            return nil
+        }
+        
+        // Set the physical size of the image in meters (adjust as needed)
+        let physicalWidth = 0.8  // 20cm wide
+        let referenceImage = ARReferenceImage(image, orientation: .up, physicalWidth: physicalWidth)
+        referenceImage.name = "freaky"
+        
+        return referenceImage
+    }
+    
+    class Coordinator: NSObject, ARSessionDelegate {
+        weak var arView: ARView?
+        var cachedTexture: TextureResource?
+        var anchors: [UUID: AnchorEntity] = [:]
+        
+        func preloadTexture() {
+            Task {
+                do {
+                    print("🔄 Preloading overlay texture 'bob'...")
+                    cachedTexture = try await TextureResource.load(named: "bob")
+                    print("✅ Overlay texture preloaded successfully")
+                } catch {
+                    print("❌ Failed to preload overlay texture: \(error)")
+                    print("Make sure 'bob' image is added to your Assets catalog")
+                }
+            }
+        }
+        
+        func session(_ session: ARSession, didAdd anchors: [ARAnchor]) {
+            for anchor in anchors {
+                guard let imageAnchor = anchor as? ARImageAnchor else {
+                    print("⚠️ Non-image anchor detected")
+                    continue
+                }
+                
+                print("✅ Reference image detected: \(imageAnchor.name ?? "unnamed")")
+                
+                // Create overlay with detected image dimensions
+                let physicalWidth = Float(imageAnchor.referenceImage.physicalSize.width)
+                let physicalHeight = Float(imageAnchor.referenceImage.physicalSize.height)
+                
+                print("📏 Creating overlay with size: \(physicalWidth)x\(physicalHeight)")
+                
+                let planeMesh = MeshResource.generatePlane(width: physicalWidth,
+                                                         height: physicalHeight)
+                
+                guard let texture = cachedTexture else {
+                    print("❌ Overlay texture not preloaded")
+                    return
+                }
+                
+                let imageEntity = ModelEntity(mesh: planeMesh)
+                var material = UnlitMaterial()
+                material.baseColor = MaterialColorParameter.texture(texture)
+                imageEntity.model?.materials = [material]
+                
+                let anchorEntity = AnchorEntity(anchor: imageAnchor)
+                anchorEntity.addChild(imageEntity)
+                imageEntity.position.z = 0
+                imageEntity.setPosition(SIMD3(0, 0, 0), relativeTo: anchorEntity)
+                imageEntity.setOrientation(simd_quatf(angle: -.pi / 2, axis: [1, 0, 0]), relativeTo: anchorEntity)
+
+
+                
+                DispatchQueue.main.async {
+                    print("➕ Adding overlay to scene")
+                    self.arView?.scene.addAnchor(anchorEntity)
+                    self.anchors[imageAnchor.identifier] = anchorEntity
+                }
+            }
+        }
+        
+        func session(_ session: ARSession, didFailWithError error: Error) {
+            print("❌ AR Session failed: \(error)")
+        }
+        
+        func session(_ session: ARSession, cameraDidChangeTrackingState camera: ARCamera) {
+            print("📱 Camera tracking state: \(camera.trackingState)")
         }
     }
 }
