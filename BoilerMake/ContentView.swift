@@ -571,26 +571,46 @@ struct ARViewContainer: UIViewRepresentable {
                     
                 }
                 
-                speechRecognizer.startTranscribing()
-                
-                let transcriptionTimer = Timer.scheduledTimer(withTimeInterval: 2.0, repeats: true) { [weak self] _ in
-                            Task {
-                                let transcript = await self?.speechRecognizer.transcript
-                                print("Transcript: \(transcript ?? "No speech detected")")
-                            }
-                        }
-                
-                DispatchQueue.main.asyncAfter(deadline: .now() + 25.0) {
-                            print("Stopping transcription after videos")
-                            self.speechRecognizer.stopTranscribing()
-                            transcriptionTimer.invalidate()
+                DispatchQueue.main.asyncAfter(deadline: .now() + 20.0) {
+                    print("Videos finished - Starting transcription now...")
+                    self.speechRecognizer.startTranscribing()
+                    
+                    // Set up silence detection
+                    var lastTranscript = ""
+                    var silenceCounter = 0
+                    
+                    // Check for changes in transcript every 2 seconds
+                    let silenceTimer = Timer.scheduledTimer(withTimeInterval: 2.0, repeats: true) { [weak self] timer in
+                        Task {
+                            guard let self = self else { return }
+                            let currentTranscript = await self.speechRecognizer.transcript
+                            print("Current transcript: \(currentTranscript)")
                             
-                            // Print final transcript
-                            Task {
-                                let finalTranscript = await self.speechRecognizer.transcript
-                                print("Final transcript: \(finalTranscript)")
+                            // If transcript hasn't changed, count as silence
+                            if currentTranscript == lastTranscript {
+                                silenceCounter += 1
+                                print("Silence detected for \(silenceCounter * 2) seconds")
+                            } else {
+                                // Reset counter if new speech detected
+                                silenceCounter = 0
+                                lastTranscript = currentTranscript
+                            }
+                            
+                            // After 6 seconds of silence, stop transcribing
+                            if silenceCounter >= 3 {
+                                print("No new speech for 6 seconds - stopping transcription")
+                                self.speechRecognizer.stopTranscribing()
+                                timer.invalidate()
+                                
+                                // Print final transcript
+                                print("FINAL TRANSCRIPT: \(currentTranscript)")
+                                
+                                // Consider adding UI element to display the transcript
+                                // or saving it for later use
                             }
                         }
+                    }
+                }
                 
                 
                 let anchorEntity = AnchorEntity(anchor: imageAnchor)
