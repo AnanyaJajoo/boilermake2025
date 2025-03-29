@@ -2,6 +2,7 @@ import SwiftUI
 import RealityKit
 import ARKit
 import UIKit
+//import TranscriptionKit
 
 struct ContentView: View {
     @State private var isLandingPageActive = true
@@ -9,7 +10,8 @@ struct ContentView: View {
     @State private var isARActive = true
     @State private var language: String = "English"
     @State private var userName: String = ""
-
+    
+    
     var body: some View {
         ZStack {
             if isLandingPageActive {
@@ -257,7 +259,7 @@ struct DetailView: View {
                 .resizable()
                 .scaledToFit()
                 .frame(height: 300)
-                .cornerRadius(12)
+                . cornerRadius(12)
                 .shadow(radius: 6)
 
             Text(description)
@@ -305,8 +307,6 @@ func addLinks(to text: String) -> AttributedString {
     }
 
 
-
-
 struct CircleMenuItem: View {
     var icon: String
     @State private var isTapped = false // Track button state
@@ -325,6 +325,7 @@ struct CircleMenuItem: View {
         }
     }
 }
+
 
 struct ARViewContainer: UIViewRepresentable {
     func makeUIView(context: Context) -> ARView {
@@ -402,6 +403,7 @@ struct ARViewContainer: UIViewRepresentable {
         var playerL: AVPlayer?
         var playerC: AVPlayer?
         var anchors: [UUID: AnchorEntity] = [:]
+        @State var speechRecognizer = SpeechRecognizer()
         
         func preloadTexture() {
             Task {
@@ -409,6 +411,7 @@ struct ARViewContainer: UIViewRepresentable {
                     print("🔄 Preloading overlay texture 'bob'...")
                     // cachedTexture = try await TextureResource.load(named: "bob")
                     let videoURL = Bundle.main.url(forResource: "lebron_1", withExtension: "mp4")
+                    
                     
         
                     do {
@@ -504,12 +507,14 @@ struct ARViewContainer: UIViewRepresentable {
         }
         
         
-        func session(_ session: ARSession, didAdd anchors: [ARAnchor]) {
+        @MainActor func session(_ session: ARSession, didAdd anchors: [ARAnchor]) {
             for anchor in anchors {
                 guard let imageAnchor = anchor as? ARImageAnchor else {
                     print("⚠️ Non-image anchor detected")
                     continue
                 }
+                
+                
                 
                 print("✅ Reference image detected: \(imageAnchor.name ?? "unnamed")")
                 
@@ -566,6 +571,27 @@ struct ARViewContainer: UIViewRepresentable {
                     
                 }
                 
+                speechRecognizer.startTranscribing()
+                
+                let transcriptionTimer = Timer.scheduledTimer(withTimeInterval: 2.0, repeats: true) { [weak self] _ in
+                            Task {
+                                let transcript = await self?.speechRecognizer.transcript
+                                print("Transcript: \(transcript ?? "No speech detected")")
+                            }
+                        }
+                
+                DispatchQueue.main.asyncAfter(deadline: .now() + 25.0) {
+                            print("Stopping transcription after videos")
+                            self.speechRecognizer.stopTranscribing()
+                            transcriptionTimer.invalidate()
+                            
+                            // Print final transcript
+                            Task {
+                                let finalTranscript = await self.speechRecognizer.transcript
+                                print("Final transcript: \(finalTranscript)")
+                            }
+                        }
+                
                 
                 let anchorEntity = AnchorEntity(anchor: imageAnchor)
                 anchorEntity.addChild(imageEntity)
@@ -591,3 +617,4 @@ struct ARViewContainer: UIViewRepresentable {
         }
     }
 }
+
