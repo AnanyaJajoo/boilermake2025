@@ -118,6 +118,8 @@ public actor SpeechRecognizer: Observable {
         
         let request = SFSpeechAudioBufferRecognitionRequest()
         request.shouldReportPartialResults = true
+        // Setting a lower confidence threshold for easier speech detection
+        request.taskHint = .dictation // Optimize for continuous speech
         
         let audioSession = AVAudioSession.sharedInstance()
         try audioSession.setCategory(.playAndRecord, mode: .measurement, options: .duckOthers)
