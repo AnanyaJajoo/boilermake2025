@@ -54,7 +54,7 @@ def start_gen_video(text: str, out_url: str):
     url = "https://api.sync.so/v2/generate"
 
     payload = {
-        "model": "lipsync-1.9.0-beta",
+        "model": "lipsync-2-preview",
         "input": [
             {
                 "type": "video",
@@ -68,7 +68,7 @@ def start_gen_video(text: str, out_url: str):
                 "type": "text",
                 "provider": {
                     "name": "elevenlabs",
-                    "voiceId":  "21m00Tcm4TlvDq8ikWAM",# "21m00Tcm4TlvDq8ikWAM", "2EiwWnXFnvU5JabPnv8n", # 
+                    "voiceId":  "2EiwWnXFnvU5JabPnv8n",# "21m00Tcm4TlvDq8ikWAM", "2EiwWnXFnvU5JabPnv8n", # 
                     # "script": "\"Hey, I'm LeBron James, and I'm here to tell you about Sprite. It's the perfect drink to quench your thirst on a hot day like today.\""
                     "script": text
                 }
@@ -110,7 +110,12 @@ if __name__ == "__main__":
     # Step 1: Generate video from still image
     client = Client(apikey=open("filestack_api_key.txt", "r").read().strip())
 
-    out_url = gen_video_from_img_2(input_img:="chanel_2.jpg",
+    cap = cv2.VideoCapture(0)
+    input("Press Enter to take a picture...")
+    ret, frame = cap.read()
+    cv2.imwrite("camera_input.jpg", frame)
+
+    out_url = gen_video_from_img_2(input_img:="camera_input.jpg",
                              time=5.0, 
                              fps=25, 
                              output_path="input_old.mp4",
@@ -129,8 +134,8 @@ if __name__ == "__main__":
     print("Text: ", text)
     input("[DEBUG] Press Enter to continue...")
 
-
-    out_url = "https://integral-wasp-accurately.ngrok-free.app/video"
+    out_url = "https://20b1-128-210-106-81.ngrok-free.app/video"
+    # out_url = "https://604e-128-210-107-130.ngrok-free.app/video"
     # out_url = "https://synchlabs-public.s3.us-west-2.amazonaws.com/david_demo_shortvid-03a10044-7741-4cfc-816a-5bccd392d1ee.mp4"
 
     # step 3: video gen

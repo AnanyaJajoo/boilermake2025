@@ -1,0 +1,9 @@
+*/*api_key.txt
+My project/
+.env
+*.jpg
+*.mp4
+*.mp3
+
+*media/
+*db/
