@@ -7,3 +7,6 @@ My project/
 
 *media/
 *db/
+
+*.pyc
+**/__pycache__/
