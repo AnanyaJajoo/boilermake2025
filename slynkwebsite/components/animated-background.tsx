@@ -161,4 +161,5 @@ export function AnimatedBackground() {
           style={element.style}
           
 
-      
+\
+Let's create an enhanced background for the customers page:

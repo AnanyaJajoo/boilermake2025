@@ -8,6 +8,10 @@ import { ArrowRight, Upload, Brain, Smartphone, Users } from "lucide-react"
 import { useInView } from "react-intersection-observer"
 import { CustomersBackground } from "@/components/customers-background"
 import { SignInPopup } from "@/components/sign-in-popup"
+import { PersistentSignInButton } from "@/components/persistent-sign-in-button"
+import { AnimatedGradientBackground } from "@/components/animated-gradient-background"
+import { ScrollingInfographic } from "@/components/scrolling-infographic"
+import { AnimatedStats } from "@/components/animated-stats"
 
 export default function CustomersPage() {
   const [showNavbar, setShowNavbar] = useState(false)
@@ -23,6 +27,7 @@ export default function CustomersPage() {
 
   return (
     <main className="min-h-screen bg-white">
+      <AnimatedGradientBackground />
       <CustomersBackground />
       {showNavbar && <FloatingNavbar alwaysShow />}
 
@@ -32,6 +37,10 @@ export default function CustomersPage() {
       {/* Process Section */}
       <ProcessSection />
 
+      {/* Scrolling Infographic */}
+      <ScrollingInfographic />
+      <AnimatedStats />
+
       {/* Case Studies */}
       <CaseStudiesSection />
 
@@ -39,6 +48,7 @@ export default function CustomersPage() {
       <TestimonialsSection />
 
       <Footer />
+      <PersistentSignInButton onSignInClick={() => setIsSignInOpen(true)} />
       <SignInPopup isOpen={isSignInOpen} onClose={() => setIsSignInOpen(false)} />
     </main>
   )

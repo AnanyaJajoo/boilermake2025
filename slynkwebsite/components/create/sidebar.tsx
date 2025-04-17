@@ -1,105 +1,129 @@
 "use client"
 
-import type React from "react"
-
 import { useState } from "react"
-import { motion } from "framer-motion"
+import {
+  Sidebar,
+  SidebarHeader,
+  SidebarContent,
+  SidebarFooter,
+  SidebarMenu,
+  SidebarMenuItem,
+  SidebarMenuButton,
+} from "@/components/ui/sidebar"
 import { Logo } from "@/components/logo"
 import { Button } from "@/components/ui/button"
-import { Home, MessageSquare, ImageIcon, FileText, Settings, PlusCircle, ChevronLeft, ChevronRight } from "lucide-react"
+import { PlusCircle, Search, User } from "lucide-react"
+import Link from "next/link"
+import { Input } from "@/components/ui/input"
 
-interface NavItemProps {
-  icon: React.ElementType
-  label: string
-  active?: boolean
-  onClick?: () => void
+interface AIPersona {
+  id: string
+  name: string
+  dateCreated: Date
 }
 
-function NavItem({ icon: Icon, label, active, onClick }: NavItemProps) {
-  return (
-    <Button
-      variant="ghost"
-      className={`w-full justify-start gap-3 rounded-lg px-3 py-2 text-sm ${
-        active ? "bg-pink-50 text-pink-600" : "text-gray-600 hover:bg-gray-100"
-      }`}
-      onClick={onClick}
-    >
-      <Icon size={18} />
-      <span>{label}</span>
-      {active && (
-        <motion.div
-          layoutId="activeIndicator"
-          className="absolute left-0 top-1/2 h-5 w-1 -translate-y-1/2 rounded-r-full bg-pink-500"
-        />
-      )}
-    </Button>
-  )
-}
+export function CreateSidebar() {
+  const [searchQuery, setSearchQuery] = useState("")
 
-export function Sidebar() {
-  const [collapsed, setCollapsed] = useState(false)
-  const [activeItem, setActiveItem] = useState("Chat")
-
-  const navItems = [
-    { icon: Home, label: "Home" },
-    { icon: MessageSquare, label: "Chat" },
-    { icon: ImageIcon, label: "Images" },
-    { icon: FileText, label: "Documents" },
-    { icon: Settings, label: "Settings" },
+  // Mock data for AI personas
+  const recentPersonas: AIPersona[] = [
+    {
+      id: "1",
+      name: "Tina - Customer Service",
+      dateCreated: new Date("2023-04-15"),
+    },
+    {
+      id: "2",
+      name: "Max - Product Specialist",
+      dateCreated: new Date("2023-05-22"),
+    },
+    {
+      id: "3",
+      name: "Sarah - Fashion Advisor",
+      dateCreated: new Date("2023-06-10"),
+    },
+    {
+      id: "4",
+      name: "Dr. Michael - Health Advisor",
+      dateCreated: new Date("2023-07-05"),
+    },
+    {
+      id: "5",
+      name: "Tech Support Assistant",
+      dateCreated: new Date("2023-08-12"),
+    },
+    {
+      id: "6",
+      name: "Sales Representative",
+      dateCreated: new Date("2023-09-18"),
+    },
   ]
 
-  return (
-    <div
-      className={`flex h-screen flex-col border-r border-gray-200 bg-white transition-all duration-300 ${
-        collapsed ? "w-16" : "w-64"
-      }`}
-    >
-      <div className="flex items-center justify-between p-4">
-        {!collapsed && <Logo />}
-        <Button
-          variant="ghost"
-          size="icon"
-          className="ml-auto"
-          onClick={() => setCollapsed(!collapsed)}
-          aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-        >
-          {collapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
-        </Button>
-      </div>
+  // Filter personas based on search query
+  const filteredPersonas = recentPersonas.filter((persona) =>
+    persona.name.toLowerCase().includes(searchQuery.toLowerCase()),
+  )
 
-      <div className="px-3 py-2">
+  return (
+    <Sidebar className="w-64 border-r border-gray-200 bg-white" collapsible="none">
+      <SidebarHeader className="p-3">
+        <div className="flex items-center justify-between mb-3">
+          <Logo />
+          <Link href="/">
+            <Button variant="ghost" size="sm" className="h-8 w-8 rounded-full p-0">
+              <User size={16} />
+              <span className="sr-only">Profile</span>
+            </Button>
+          </Link>
+        </div>
         <Button
-          className="w-full gap-2 bg-gradient-to-r from-pink-400 to-pink-600 text-white hover:opacity-90"
+          className="w-full gap-2 bg-gradient-to-r from-pink-400 to-pink-600 text-white hover:opacity-90 rounded-full"
           size="sm"
         >
           <PlusCircle size={16} />
-          {!collapsed && <span>New Chat</span>}
+          <span>New persona</span>
         </Button>
-      </div>
-
-      <nav className="mt-6 flex-1 space-y-1 px-3">
-        {navItems.map((item) => (
-          <NavItem
-            key={item.label}
-            icon={item.icon}
-            label={collapsed ? "" : item.label}
-            active={activeItem === item.label}
-            onClick={() => setActiveItem(item.label)}
+        <div className="relative mt-3">
+          <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+          <Input
+            placeholder="Search personas..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-8 h-8 text-sm rounded-md"
           />
-        ))}
-      </nav>
+        </div>
+      </SidebarHeader>
 
-      <div className="border-t border-gray-200 p-4">
-        {!collapsed && (
-          <div className="flex items-center gap-3">
-            <div className="h-8 w-8 rounded-full bg-gray-200"></div>
-            <div>
-              <p className="text-sm font-medium">User Name</p>
-              <p className="text-xs text-gray-500">user@example.com</p>
-            </div>
+      <SidebarContent className="px-1 py-2">
+        <div className="px-3 py-1">
+          <h3 className="text-xs font-medium text-gray-500 mb-2">Recent Personas</h3>
+        </div>
+        <SidebarMenu>
+          {filteredPersonas.length > 0 ? (
+            filteredPersonas.map((persona) => (
+              <SidebarMenuItem key={persona.id}>
+                <SidebarMenuButton className="rounded-md text-sm py-1.5 px-3 h-auto">
+                  <span className="truncate">{persona.name}</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            ))
+          ) : (
+            <div className="text-xs text-gray-500 text-center py-2 px-3">No personas found</div>
+          )}
+        </SidebarMenu>
+      </SidebarContent>
+
+      <SidebarFooter className="p-3 border-t border-gray-200">
+        <div className="flex items-center gap-2">
+          <div className="h-8 w-8 rounded-full bg-pink-100 flex items-center justify-center text-pink-600 font-medium text-sm">
+            VX
           </div>
-        )}
-      </div>
-    </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium text-gray-700 truncate">Voxen AI</p>
+            <p className="text-xs text-gray-500">Professional</p>
+          </div>
+        </div>
+      </SidebarFooter>
+    </Sidebar>
   )
 }

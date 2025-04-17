@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Home, Users } from "lucide-react"
+import { Logo } from "@/components/logo"
 
 interface FloatingNavbarProps {
   alwaysShow?: boolean
@@ -54,8 +55,13 @@ export function FloatingNavbar({ alwaysShow = false }: FloatingNavbarProps) {
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: -100, opacity: 0 }}
             transition={{ type: "spring", stiffness: 300, damping: 30 }}
-            className="bg-white/90 backdrop-blur-lg rounded-full shadow-lg px-2 py-2 flex items-center gap-1"
+            className="bg-white/90 backdrop-blur-lg rounded-full shadow-lg px-4 py-2 flex items-center gap-4"
           >
+            {/* Logo on the left */}
+            <div className="flex items-center mr-2">
+              <Logo />
+            </div>
+
             <motion.button
               onClick={() => navigateTo("/")}
               className="relative group px-4 py-2 rounded-full transition-colors hover:bg-gray-100"

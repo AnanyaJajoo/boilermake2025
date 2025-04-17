@@ -1,23 +1,17 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
-import { InteractiveGrid } from "@/components/ui/interactive-grid"
 import { ShineBorder } from "@/components/ui/shine-border"
 import { Play } from "lucide-react"
 import Image from "next/image"
 import { AnimatedText } from "@/components/animated-text"
-import { useRouter } from "next/navigation"
+import Link from "next/link"
+import { AnimatedEmojiBackground } from "@/components/animated-emoji-background"
 
 export function HeroSection() {
-  const router = useRouter()
-
-  const navigateToCreate = () => {
-    router.push("/create")
-  }
-
   return (
     <section className="relative min-h-screen pt-32 pb-16 overflow-hidden bg-white">
-      <InteractiveGrid containerClassName="absolute inset-0" className="opacity-30" points={40} />
+      <AnimatedEmojiBackground />
 
       <ShineBorder className="relative z-10 max-w-6xl mx-auto px-6" borderClassName="rounded-xl overflow-hidden">
         <div className="text-center mb-16">
@@ -37,20 +31,20 @@ export function HeroSection() {
             Transform static advertisements into engaging, conversational experiences. Upload your content and let our
             AI-driven avatars tell your story.
           </p>
-          <div className="flex gap-4 justify-center relative z-50">
-            <Button 
-              variant="outline" 
-              className="gap-2 border-pink-200 hover:bg-pink-50 text-pink-600 !rounded-xl"
+          <div className="flex gap-4 justify-center relative z-20">
+            <Button
+              variant="outline"
+              className="gap-2 border-pink-200 hover:bg-pink-50 text-pink-600"
+              onClick={() => window.open("#demo", "_self")}
             >
               <Play className="w-4 h-4" />
               Watch Demo
             </Button>
-            <a 
-              href="/create"
-              className="inline-flex items-center justify-center gap-2 whitespace-nowrap !rounded-xl text-sm font-medium bg-gradient-to-r from-pink-400 to-pink-600 text-white hover:opacity-90 hover:scale-105 active:scale-95 transition-all cursor-pointer h-10 px-4 py-2"
-            >
-              Get Started
-            </a>
+            <Link href="/create" className="z-20">
+              <Button className="bg-gradient-to-r from-pink-400 to-pink-600 text-white hover:opacity-90">
+                Get Started
+              </Button>
+            </Link>
           </div>
         </div>
 

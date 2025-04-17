@@ -4,13 +4,14 @@ import type React from "react"
 
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
-import { Logo } from "@/components/logo"
 import { AnimatedProgressBar } from "@/components/create/animated-progress-bar"
-import { AnimatedCard } from "@/components/create/animated-card"
 import { AnimatedInput } from "@/components/create/animated-input"
 import { FileDropZone } from "@/components/create/file-drop-zone"
 import { QATable } from "@/components/create/qa-table"
-import { ArrowLeft, ArrowRight, Check, Sparkles } from "lucide-react"
+import { ArrowLeft, ArrowRight, Check, Sparkles, Home } from "lucide-react"
+import { CreateSidebar } from "@/components/create/sidebar"
+import { SidebarProvider } from "@/components/ui/sidebar"
+import Link from "next/link"
 
 interface FormData {
   email: string
@@ -90,8 +91,8 @@ export default function CreatePage() {
     switch (currentStep) {
       case 0:
         return (
-          <AnimatedCard delay={0.2}>
-            <h2 className="mb-6 text-2xl font-bold text-gray-800">Basic Information</h2>
+          <div className="space-y-6">
+            <h2 className="text-2xl font-bold text-gray-800">Basic Information</h2>
             <AnimatedInput
               label="Email Address"
               type="email"
@@ -109,12 +110,12 @@ export default function CreatePage() {
               value={formData.productName}
               onChange={handleInputChange}
             />
-          </AnimatedCard>
+          </div>
         )
       case 1:
         return (
-          <AnimatedCard delay={0.2}>
-            <h2 className="mb-6 text-2xl font-bold text-gray-800">Content Details</h2>
+          <div className="space-y-6">
+            <h2 className="text-2xl font-bold text-gray-800">Content Details</h2>
             <AnimatedInput
               label="Description"
               placeholder="Describe your product or event"
@@ -140,24 +141,24 @@ export default function CreatePage() {
               onChange={(file) => handleFileChange("adImage", file)}
               value={formData.adImage}
             />
-          </AnimatedCard>
+          </div>
         )
       case 2:
         return (
-          <AnimatedCard delay={0.2}>
-            <h2 className="mb-6 text-2xl font-bold text-gray-800">Questions & Answers</h2>
-            <p className="mb-4 text-sm text-gray-600">
+          <div className="space-y-6">
+            <h2 className="text-2xl font-bold text-gray-800">Questions & Answers</h2>
+            <p className="text-sm text-gray-600">
               Add questions and answers that your AI persona should know. This helps create a more accurate and helpful
               virtual spokesperson.
             </p>
             <QATable pairs={formData.qaPairs} onChange={handleQAPairsChange} />
-          </AnimatedCard>
+          </div>
         )
       case 3:
         return (
-          <AnimatedCard delay={0.2}>
-            <h2 className="mb-6 text-2xl font-bold text-gray-800">Voice Customization</h2>
-            <p className="mb-4 text-sm text-gray-600">
+          <div className="space-y-6">
+            <h2 className="text-2xl font-bold text-gray-800">Voice Customization</h2>
+            <p className="text-sm text-gray-600">
               Upload a voice sample to customize how your AI persona sounds. This is optional but recommended for a more
               personalized experience.
             </p>
@@ -178,12 +179,12 @@ export default function CreatePage() {
                 analyze the voice characteristics to create a similar sounding virtual spokesperson.
               </p>
             </div>
-          </AnimatedCard>
+          </div>
         )
       case 4:
         return (
-          <AnimatedCard delay={0.2}>
-            <h2 className="mb-6 text-2xl font-bold text-gray-800">Review Your Information</h2>
+          <div className="space-y-6">
+            <h2 className="text-2xl font-bold text-gray-800">Review Your Information</h2>
             <div className="space-y-6">
               <div>
                 <h3 className="mb-2 text-sm font-medium text-gray-500">Basic Information</h3>
@@ -248,7 +249,7 @@ export default function CreatePage() {
                 </div>
               </div>
             </div>
-          </AnimatedCard>
+          </div>
         )
       default:
         return null
@@ -256,80 +257,92 @@ export default function CreatePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white pb-20">
-      {/* Header */}
-      <header className="sticky top-0 z-50 border-b border-gray-200 bg-white/80 backdrop-blur-md">
-        <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-4">
-          <Logo />
-          <Button variant="outline" size="sm" className="rounded-full">
-            Save Draft
-          </Button>
-        </div>
-      </header>
-
-      {/* Main content */}
-      <main className="mx-auto max-w-3xl px-4 pt-8">
-        {/* Progress bar */}
-        <div className="mb-8">
-          <div className="mb-2 flex items-center justify-between">
-            <h1 className="text-2xl font-bold text-gray-900">Create AI Persona</h1>
-            <p className="text-sm text-gray-500">
-              Step {currentStep + 1} of {STEPS.length}
-            </p>
-          </div>
-          <AnimatedProgressBar currentStep={currentStep + 1} totalSteps={STEPS.length} />
-          <div className="mt-4 flex justify-between">
-            {STEPS.map((step, index) => (
-              <div
-                key={step.name}
-                className={`text-center ${
-                  index <= currentStep ? "text-pink-600" : "text-gray-400"
-                } transition-colors duration-300`}
-              >
-                <p className="text-xs font-medium">{step.name}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Step content */}
-        <form onSubmit={handleSubmit}>
-          {renderStepContent()}
-
-          {/* Navigation buttons */}
-          <div className="mt-8 flex justify-between">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={prevStep}
-              disabled={currentStep === 0}
-              className="gap-2 rounded-full"
-            >
-              <ArrowLeft size={16} />
-              Back
+    <div className="flex h-screen bg-white">
+      <SidebarProvider>
+        <CreateSidebar />
+        <div className="flex-1 flex flex-col overflow-hidden">
+          {/* Header */}
+          <header className="border-b border-gray-200 bg-white p-4 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <h1 className="text-xl font-bold text-gray-900">Create AI Persona</h1>
+              <Link href="/" className="hidden sm:flex">
+                <Button variant="outline" size="sm" className="gap-1.5 rounded-full">
+                  <Home size={14} />
+                  <span>Home</span>
+                </Button>
+              </Link>
+            </div>
+            <Button variant="outline" size="sm" className="rounded-full">
+              Save Draft
             </Button>
+          </header>
 
-            {currentStep < STEPS.length - 1 ? (
-              <Button
-                type="button"
-                onClick={nextStep}
-                className="gap-2 rounded-full bg-gradient-to-r from-pink-400 to-pink-600 text-white hover:opacity-90"
-              >
-                Next
-                <ArrowRight size={16} />
-              </Button>
-            ) : (
-              <Button
-                type="submit"
-                className="gap-2 rounded-full bg-gradient-to-r from-pink-400 to-pink-600 text-white hover:opacity-90"
-              >
-                <Check size={16} />
-                Create AI Persona
-              </Button>
-            )}
+          {/* Main content */}
+          <div className="flex-1 overflow-auto p-6">
+            <div className="max-w-3xl mx-auto">
+              {/* Progress bar */}
+              <div className="mb-8">
+                <div className="mb-2 flex items-center justify-between">
+                  <p className="text-sm text-gray-500">
+                    Step {currentStep + 1} of {STEPS.length}
+                  </p>
+                </div>
+                <AnimatedProgressBar currentStep={currentStep + 1} totalSteps={STEPS.length} />
+                <div className="mt-4 flex justify-between">
+                  {STEPS.map((step, index) => (
+                    <div
+                      key={step.name}
+                      className={`text-center ${
+                        index <= currentStep ? "text-pink-600" : "text-gray-400"
+                      } transition-colors duration-300`}
+                    >
+                      <p className="text-xs font-medium">{step.name}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Step content */}
+              <form onSubmit={handleSubmit} className="bg-white rounded-lg border border-gray-100 shadow-sm p-6">
+                {renderStepContent()}
+
+                {/* Navigation buttons */}
+                <div className="mt-8 flex justify-between">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={prevStep}
+                    disabled={currentStep === 0}
+                    className="gap-2 rounded-full"
+                  >
+                    <ArrowLeft size={16} />
+                    Back
+                  </Button>
+
+                  {currentStep < STEPS.length - 1 ? (
+                    <Button
+                      type="button"
+                      onClick={nextStep}
+                      className="gap-2 rounded-full bg-gradient-to-r from-pink-400 to-pink-600 text-white hover:opacity-90"
+                    >
+                      Next
+                      <ArrowRight size={16} />
+                    </Button>
+                  ) : (
+                    <Button
+                      type="submit"
+                      className="gap-2 rounded-full bg-gradient-to-r from-pink-400 to-pink-600 text-white hover:opacity-90"
+                    >
+                      <Check size={16} />
+                      Create AI Persona
+                    </Button>
+                  )}
+                </div>
+              </form>
+            </div>
           </div>
-        </form>
-      </main>
+        </div>
+      </SidebarProvider>
     </div>
   )
 }

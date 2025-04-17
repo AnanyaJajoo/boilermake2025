@@ -9,6 +9,27 @@
   --gradient-purple: linear-gradient(135deg, #a78bfa 0%, #8b5cf6 100%);
   --gradient-teal: linear-gradient(135deg, #5eead4 0%, #14b8a6 100%);
   --gradient-amber: linear-gradient(135deg, #fcd34d 0%, #f59e0b 100%);
+
+  /* Sidebar variables */
+  --sidebar-background: 0 0% 100%;
+  --sidebar-foreground: 240 5.3% 26.1%;
+  --sidebar-primary: 240 5.9% 10%;
+  --sidebar-primary-foreground: 0 0% 98%;
+  --sidebar-accent: 240 4.8% 95.9%;
+  --sidebar-accent-foreground: 240 5.9% 10%;
+  --sidebar-border: 220 13% 91%;
+  --sidebar-ring: 217.2 91.2% 59.8%;
+}
+
+.dark {
+  --sidebar-background: 240 5.9% 10%;
+  --sidebar-foreground: 240 4.8% 95.9%;
+  --sidebar-primary: 0 0% 98%;
+  --sidebar-primary-foreground: 240 5.9% 10%;
+  --sidebar-accent: 240 3.7% 15.9%;
+  --sidebar-accent-foreground: 240 4.8% 95.9%;
+  --sidebar-border: 240 3.7% 15.9%;
+  --sidebar-ring: 217.2 91.2% 59.8%;
 }
 
 .hero-gradient {
@@ -113,17 +134,118 @@
   animation: fadeInUp 0.6s ease-out 0.4s forwards;
 }
 
-/* Disable auto scroll-to-top behavior */
-html.disable-scroll-to-top {
-  scroll-behavior: auto !important;
+/* Compact section spacing */
+.compact-section {
+  padding-top: 3rem;
+  padding-bottom: 3rem;
 }
 
-/* When this class is present, Next.js scroll restoration is disabled */
-html.disable-scroll-to-top * {
-  scroll-margin-top: 0 !important;
+/* Gradient backgrounds */
+.gradient-pink-purple {
+  background: linear-gradient(135deg, rgba(236, 72, 153, 0.1) 0%, rgba(168, 85, 247, 0.1) 100%);
 }
 
-/* Ensure pages start at the top when loaded directly */
-html.disable-scroll-to-top body {
-  overflow-anchor: none;
+.gradient-blue-teal {
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(20, 184, 166, 0.1) 100%);
+}
+
+.gradient-amber-orange {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(249, 115, 22, 0.1) 100%);
+}
+
+/* Animated gradient text */
+.animated-gradient-text {
+  background-size: 200% auto;
+  background-image: linear-gradient(to right, #ec4899 0%, #8b5cf6 50%, #ec4899 100%);
+  animation: gradientText 3s linear infinite;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+@keyframes gradientText {
+  0% {
+    background-position: 0% center;
+  }
+  100% {
+    background-position: 200% center;
+  }
+}
+
+/* Scrolling animations */
+.scroll-fade-in {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+}
+
+.scroll-fade-in.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Staggered animation delays */
+.stagger-delay-1 {
+  transition-delay: 0.1s;
+}
+.stagger-delay-2 {
+  transition-delay: 0.2s;
+}
+.stagger-delay-3 {
+  transition-delay: 0.3s;
+}
+.stagger-delay-4 {
+  transition-delay: 0.4s;
+}
+.stagger-delay-5 {
+  transition-delay: 0.5s;
+}
+
+/* Widget styles */
+.widget {
+  border-radius: 1rem;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.widget:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+/* Compact the sections */
+section {
+  padding-top: 4rem;
+  padding-bottom: 4rem;
+}
+
+@media (max-width: 768px) {
+  section {
+    padding-top: 3rem;
+    padding-bottom: 3rem;
+  }
+}
+
+/* Sidebar specific styles */
+.bg-sidebar {
+  background-color: hsl(var(--sidebar-background));
+}
+
+.text-sidebar-foreground {
+  color: hsl(var(--sidebar-foreground));
+}
+
+.bg-sidebar-accent {
+  background-color: hsl(var(--sidebar-accent));
+}
+
+.text-sidebar-accent-foreground {
+  color: hsl(var(--sidebar-accent-foreground));
+}
+
+.border-sidebar-border {
+  border-color: hsl(var(--sidebar-border));
+}
+
+.ring-sidebar-ring {
+  --tw-ring-color: hsl(var(--sidebar-ring));
 }

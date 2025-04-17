@@ -79,7 +79,7 @@ export function FeaturesSection() {
   }
 
   return (
-    <section id="paradigm" className="py-16 px-6 bg-gray-50 relative overflow-hidden">
+    <section id="paradigm" className="py-12 px-6 bg-gray-50 relative overflow-hidden">
       <div className="absolute inset-0 bg-gradient-to-b from-white to-gray-50" />
 
       <div className="max-w-4xl mx-auto relative z-10" ref={ref}>
@@ -101,13 +101,13 @@ export function FeaturesSection() {
           variants={containerVariants}
           initial="hidden"
           animate={isVisible ? "visible" : "hidden"}
-          className="grid md:grid-cols-2 gap-6"
+          className="grid md:grid-cols-2 gap-4"
         >
           {features.map((feature, index) => (
             <motion.div
               key={feature.title}
               variants={itemVariants}
-              className={`relative rounded-xl overflow-hidden bg-white shadow-md hover:shadow-lg transition-all duration-300 group`}
+              className={`relative rounded-xl overflow-hidden bg-white shadow-md hover:shadow-lg transition-all duration-300 group widget`}
             >
               <div
                 className={`absolute inset-0 bg-gradient-to-br ${feature.gradient} opacity-30 group-hover:opacity-50 transition-opacity duration-300`}
