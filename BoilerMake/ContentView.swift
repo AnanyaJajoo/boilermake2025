@@ -2,102 +2,127 @@ import SwiftUI
 import RealityKit
 import ARKit
 import UIKit
+import FirebaseCore
+import FirebaseAuth
+import FirebaseFirestore
 //import TranscriptionKit
 
 struct ContentView: View {
-    @State private var isLandingPageActive = true
     @State private var isMenuExpanded = false
-    @State private var isARActive = true
-    @State private var language: String = "English"
-    @State private var userName: String = ""
-    
-    
-    var body: some View {
-        ZStack {
-            if isLandingPageActive {
-                LandingPage()
-                    .transition(.opacity)
-            } else {
-                NavigationStack {
-                    ZStack {
-                        if isARActive {
-                            /*
-                            RealityView { content in
-                                let anchor = AnchorEntity(.camera)
-                                content.add(anchor)
-                                content.camera = .spatialTracking
-                            }
+        @State private var isARActive = true
+        @State private var language: String = "English"
+        @State private var userName: String = ""
+        @AppStorage("isAuthenticated") var isAuthenticated = false
+
+        var body: some View {
+            NavigationStack {
+                ZStack {
+                    if isARActive {
+                        ARViewContainer()
                             .edgesIgnoringSafeArea(.all)
-                            .id(isARActive)
-                             */
-                            ARViewContainer()
-                                .edgesIgnoringSafeArea(.all)
-                        }
+                    }
 
-                        VStack {
+                    VStack {
+                        Spacer()
+                        HStack {
                             Spacer()
-                            HStack {
-                                Spacer()
-
-                                if isMenuExpanded {
-                                    VStack(spacing: 12) {
-                                        CircleMenuItem(icon: "heart.fill")
-
-                                        NavigationLink {
-                                            GridView()
-                                        } label: {
-                                            Image(systemName: "archivebox.fill")
-                                                .font(.system(size: 20))
-                                                .frame(width: 50, height: 50)
-                                                .background(Color.white)
-                                                .foregroundColor(.blue)
-                                                .clipShape(Circle())
-                                                .shadow(radius: 3)
-                                        }
-
-                                        NavigationLink {
-                                            Setting(isARActive: $isARActive, language: $language, userName: $userName)
-                                        } label: {
-                                            Image(systemName: "gearshape.fill")
-                                                .font(.system(size: 20))
-                                                .frame(width: 50, height: 50)
-                                                .background(Color.white)
-                                                .foregroundColor(.blue)
-                                                .clipShape(Circle())
-                                                .shadow(radius: 3)
-                                        }
+                            if isMenuExpanded {
+                                VStack(spacing: 12) {
+                                    CircleMenuItem(icon: "heart.fill") {
+                                        saveAdToFirebase()
                                     }
-                                    .transition(.scale)
-                                }
 
-                                Button(action: {
-                                    withAnimation {
-                                        isMenuExpanded.toggle()
+
+                                    NavigationLink {
+                                        GridView()
+                                    } label: {
+                                        Image(systemName: "archivebox.fill")
+                                            .font(.system(size: 20))
+                                            .frame(width: 50, height: 50)
+                                            .background(Color.white)
+                                            .foregroundColor(.blue)
+                                            .clipShape(Circle())
+                                            .shadow(radius: 3)
                                     }
-                                }) {
-                                    Image(systemName: isMenuExpanded ? "xmark" : "plus")
-                                        .font(.system(size: 24, weight: .bold))
-                                        .frame(width: 60, height: 60)
-                                        .background(Color.blue)
-                                        .foregroundColor(.white)
-                                        .clipShape(Circle())
-                                        .shadow(radius: 5)
+
+                                    NavigationLink {
+                                        Setting(isARActive: $isARActive, language: $language, userName: $userName)
+                                    } label: {
+                                        Image(systemName: "gearshape.fill")
+                                            .font(.system(size: 20))
+                                            .frame(width: 50, height: 50)
+                                            .background(Color.white)
+                                            .foregroundColor(.blue)
+                                            .clipShape(Circle())
+                                            .shadow(radius: 3)
+                                    }
                                 }
-                                .padding()
+                                .transition(.scale)
                             }
+
+                            Button(action: {
+                                withAnimation {
+                                    isMenuExpanded.toggle()
+                                }
+                            }) {
+                                Image(systemName: isMenuExpanded ? "xmark" : "plus")
+                                    .font(.system(size: 24, weight: .bold))
+                                    .frame(width: 60, height: 60)
+                                    .background(Color.blue)
+                                    .foregroundColor(.white)
+                                    .clipShape(Circle())
+                                    .shadow(radius: 5)
+                            }
+                            .padding()
                         }
                     }
                 }
+                .navigationTitle("Main App")
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    ToolbarItem(placement: .navigationBarTrailing) {
+                        Button(action: {
+                            do {
+                                try Auth.auth().signOut()
+                                isAuthenticated = false
+                                print("👋 Signed out")
+                            } catch {
+                                print("❌ Sign out failed: \(error.localizedDescription)")
+                            }
+                        }) {
+                            Image(systemName: "rectangle.portrait.and.arrow.right")
+                                .foregroundColor(.pink)
+                        }
+                    }
+                }
+
             }
         }
-        .onAppear {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
-                withAnimation {
-                    isLandingPageActive = false
+    func saveAdToFirebase() {
+        guard let user = Auth.auth().currentUser else {
+            print("❌ No user is signed in.")
+            return
+        }
+
+        let db = Firestore.firestore()
+        let adData: [String: Any] = [
+            "title": "Lakers Tickets",
+            "description": "LeBron James and the Lakers dominate the NBA...",
+            "timestamp": Timestamp()
+        ]
+
+        db.collection("users")
+            .document(user.uid)
+            .collection("saved_ads")
+            .addDocument(data: adData) { error in
+                if let error = error {
+                    print("❌ Failed to save ad: \(error.localizedDescription)")
+                } else {
+                    print("✅ Ad saved to Firestore!")
                 }
             }
-        }
     }
+
 }
 
 struct LandingPage: View {
@@ -309,17 +334,19 @@ func addLinks(to text: String) -> AttributedString {
 
 struct CircleMenuItem: View {
     var icon: String
-    @State private var isTapped = false // Track button state
+    var action: () -> Void
+    @State private var isTapped = false
 
     var body: some View {
         Button(action: {
-            isTapped.toggle() // Toggle the state
+            isTapped.toggle()
+            action()
         }) {
             Image(systemName: icon)
                 .font(.system(size: 20))
                 .frame(width: 50, height: 50)
                 .background(Color.white)
-                .foregroundColor(isTapped ? .pink : .blue) // Change color when tapped
+                .foregroundColor(isTapped ? .pink : .blue)
                 .clipShape(Circle())
                 .shadow(radius: 3)
         }
