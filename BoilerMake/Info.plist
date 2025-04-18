@@ -18,5 +18,13 @@
 	</array>
 	<key>GIDClientID</key>
 	<string>900099320114-k435efjaa4ftn0g3e2e072sonjh3nagq.apps.googleusercontent.com</string>
+	<key>NSCameraUsageDescription</key>
+	<string>We need camera access to provide augmented reality features and identify images.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>We need microphone access to recognize your voice commands.</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>We need speech recognition to process your voice commands.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>We need access to your photos to analyze images.</string>
 </dict>
 </plist>
