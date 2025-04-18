@@ -165,7 +165,7 @@ def new_main():
         "snow_white",
     ]
 
-    server_url = " https://6b81-2607-ac80-404-2-1c50-32c5-b925-e8e5.ngrok-free.app"
+    server_url = "https://b1b4-2607-ac80-404-2-5a8-38b5-852-902c.ngrok-free.app"
     audio_url = server_url + "/audio"
     video_url = server_url + "/video"
 
@@ -247,11 +247,38 @@ def new_main():
         db[audio_stub]["clip_lengths"] = video_lengths
         db[audio_stub]["video_paths"] = vid_paths
 
-        # save db as json in db/db.json
+    
+    # ----- end of db creation -----
+    # recursively traverse db, if not string/int/float, convert to str
+    def traverse_dict(d):
+        for k, v in d.items():
+            if isinstance(v, dict):
+                traverse_dict(v)
+            elif not isinstance(v, (str, int, float)):
+                d[k] = str(v)
+            elif isinstance(v, list):
+                for i in range(len(v)):
+                    if isinstance(v[i], dict):
+                        traverse_dict(v[i])
+                    elif not isinstance(v[i], (str, int, float)):
+                        v[i] = str(v[i])
+
+    traverse_dict(db)
+
+    # outta the SLOOP!!!!
+    # save db as json in db/db.json
+    try:
         with open("db/db.json", "w") as f:
             json.dump(db, f, indent=4)
+    except Exception as e:
+        print("Error: ", e)
+        # pickle it instead
+        import pickle
+        with open("db/db.pickle", "wb") as f:
+            pickle.dump(db, f)
+        print("Pickled db instead of json")
 
-        # done!
+    # done!
 
 
 def main():
