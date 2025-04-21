@@ -7,6 +7,7 @@ from filestack import Client
 import os
 from pathlib import Path
 import cv2
+import subprocess
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -121,7 +122,17 @@ def start_gen_video_2(audio_url: Path, video_url: str, fps=25, dims=(1280, 720))
                 "type": "audio",
                 "url": audio_url,
             }
-        ]
+        ],
+        "options": {
+        "pads": [0, 5, 0, 0],
+        # "speedup": 1,
+        # "temperature": 0.5,
+        # "output_format": "mp4",
+        "sync_mode": "bounce",
+        "fps": fps,
+        "output_resolution": dims,
+        "active_speaker": True
+        }
     }
     headers = {
         "x-api-key": SYNC_API_KEY,
@@ -159,13 +170,13 @@ def new_main():
     # serve images
     image_paths_header = Path("db/images")
     audio_stubs = [
-        "aaron_judge",
-        "mickey_17",
-        "minecraft_movie",
         "snow_white",
+        "minecraft_movie",
+        "aaron_judge",
+        "mickey_17"
     ]
 
-    server_url = "https://b1b4-2607-ac80-404-2-5a8-38b5-852-902c.ngrok-free.app"
+    server_url = "https://421c-128-210-106-81.ngrok-free.app"
     audio_url = server_url + "/audio"
     video_url = server_url + "/video"
 
@@ -184,11 +195,13 @@ def new_main():
         db[audio_stub] = {"image_path": image_path}
         # get audio files
         audio_files = list(Path("db/audio").glob(f"{audio_stub}_*.mp3"))
+        # convert back to str
+        audio_files = [str(audio_file) for audio_file in audio_files]
         # check if audio files exist
         if not audio_files:
             print("[DEBUG] no audio files found for: ", audio_stub)
             continue
-        print("[DEBUG] audio_files: ", audio_files)
+        # print("[DEBUG] audio_files: ", audio_files)
         db[audio_stub]["audio_files"] = audio_files
 
         # serve video
@@ -203,15 +216,31 @@ def new_main():
             print("[DEBUG] length: ", length)
 
             # serve video and audio
-            gen_video_from_img_2(image_path, time=length, fps=FPS, output_path=f"input.mp4")
+            # gen_video_from_img_2(image_path, time=length, fps=FPS, output_path=f"input.mp4")
+            source = f"db/anim_base/{audio_stub}.mp4"
+            # ffmpeg it to input.mp4
+            if os.path.exists("input.mp4"):
+                os.remove("input.mp4")
+            subprocess.run(
+                ["ffmpeg", "-y", "-i", str(source), "-vcodec", "libx264", "input.mp4"],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.STDOUT,
+                shell=False
+            )
             # copy audio_file to .input_audio.mp3
             shutil.copy(audio_file, "input_audio.mp3")
             
             time.sleep(0.5) # wait for changes to propagate. doesn't actually matter...
 
             # gen video
-            img_dims = cv2.imread(image_path).shape[:2]
+            # img_dims = cv2.imread(image_path).shape[:2]
+            
+            # dims are from video, not image
+            dims = cv2.VideoCapture(source).read()[1].shape[:2]
+            img_dims = (dims[1], dims[0])  # (width, height)
+            print("[DEBUG] dims: ", dims)
             print("[DEBUG] img_dims: ", img_dims)
+            # exit()
             video_gen = start_gen_video_2(
                 audio_url=audio_url,
                 video_url=video_url,
@@ -225,11 +254,13 @@ def new_main():
             i = 0
 
             while video_gen["status"] in ["PENDING", "PROCESSING"]:
-                i+=(dt:=0.25)
+                i+=(dt:=1)
                 time.sleep(dt)
                 video_gen = get_video(video_gen_id)
                 print("             ", end="\r")
                 print(f"{i}", end="\r")
+
+            print("[DEBUG]: i: ", i)
 
             output_url = (video_out:=video_gen)["outputUrl"]
             response = requests.get(output_url)
@@ -267,9 +298,29 @@ def new_main():
 
     # outta the SLOOP!!!!
     # save db as json in db/db.json
+
+    # if db/db.json exists, update it with new data
+    # if not, create the file
+
     try:
-        with open("db/db.json", "w") as f:
-            json.dump(db, f, indent=4)
+        db_json_path = Path("db/db.json")
+        db_json_path.parent.mkdir(parents=True, exist_ok=True)
+        
+        if db_json_path.exists():
+            # Load existing data
+            with open(db_json_path, "r") as f:
+                existing_db = json.load(f)
+            
+            # Update existing data with new data
+            existing_db.update(db)
+            
+            # Write combined data back
+            with open(db_json_path, "w") as f:
+                json.dump(existing_db, f, indent=4)
+        else:
+            # Create the file and write db
+            with open(db_json_path, "w") as f:
+                json.dump(db, f, indent=4)
     except Exception as e:
         print("Error: ", e)
         # pickle it instead
