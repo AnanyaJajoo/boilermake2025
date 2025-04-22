@@ -19,32 +19,34 @@ export function HeroSection() {
             Bring Your{" "}
             <span className="relative">
               <span className="animate-pulse-glow bg-clip-text text-transparent bg-gradient-to-r from-pink-400 to-pink-600">
-                <AnimatedText words={["Brand", "Ads", "Conference"]} typingSpeed={120} deletingSpeed={80} />
+                <AnimatedText words={["Brand", "Ads", "Products", "Conference"]} typingSpeed={120} deletingSpeed={80} />
               </span>
               <span className="absolute -inset-1 bg-pink-400/20 blur-lg rounded-lg animate-pulse-slow"></span>
             </span>{" "}
             to Life
             <br />
-            with AI personas
+           with AI personas
           </h1>
           <p className="text-gray-600 text-lg mb-8 max-w-2xl mx-auto">
             Transform static advertisements into engaging, conversational experiences. Upload your content and let our
             AI-driven avatars tell your story.
           </p>
-          <div className="flex gap-4 justify-center relative z-20">
-            <Button
-              variant="outline"
-              className="gap-2 border-pink-200 hover:bg-pink-50 text-pink-600"
-              onClick={() => window.open("#demo", "_self")}
+          <div className="flex gap-4 justify-center relative z-50">
+            <a 
+              href="https://www.youtube.com/watch?v=nRs6GuThsJU"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center justify-center gap-2 border border-pink-200 hover:bg-pink-50 text-pink-600 !rounded-xl h-10 px-4 py-2"
             >
               <Play className="w-4 h-4" />
               Watch Demo
-            </Button>
-            <Link href="/create" className="z-20">
-              <Button className="bg-gradient-to-r from-pink-400 to-pink-600 text-white hover:opacity-90">
-                Get Started
-              </Button>
-            </Link>
+            </a>
+            <a 
+              href="/create"
+              className="inline-flex items-center justify-center gap-2 whitespace-nowrap !rounded-xl text-sm font-medium bg-gradient-to-r from-pink-400 to-pink-600 text-white hover:opacity-90 hover:scale-105 active:scale-95 transition-all cursor-pointer h-10 px-4 py-2"
+            >
+              Get Started
+            </a>
           </div>
         </div>
 

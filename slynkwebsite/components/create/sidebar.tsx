@@ -19,43 +19,47 @@ import { Input } from "@/components/ui/input"
 interface AIPersona {
   id: string
   name: string
-  dateCreated: Date
+  dateCreated: string
 }
 
-export function CreateSidebar() {
+interface CreateSidebarProps {
+  setCurrentStep: (step: number) => void
+}
+
+export function CreateSidebar({ setCurrentStep }: CreateSidebarProps) {
   const [searchQuery, setSearchQuery] = useState("")
 
   // Mock data for AI personas
   const recentPersonas: AIPersona[] = [
     {
       id: "1",
-      name: "Tina - Customer Service",
-      dateCreated: new Date("2023-04-15"),
+      name: "Coca Cola - Product Specialist",
+      dateCreated: "2023-04-15",
     },
     {
       id: "2",
-      name: "Max - Product Specialist",
-      dateCreated: new Date("2023-05-22"),
+      name: "Nike - Sales Representative",
+      dateCreated: "2023-05-22",
     },
     {
       id: "3",
-      name: "Sarah - Fashion Advisor",
-      dateCreated: new Date("2023-06-10"),
+      name: "Lululemon - Sales Representative",
+      dateCreated: "2023-06-10",
     },
     {
       id: "4",
-      name: "Dr. Michael - Health Advisor",
-      dateCreated: new Date("2023-07-05"),
+      name: "CVS Pharmacy - Sales Representative",
+      dateCreated: "2023-07-05",
     },
     {
       id: "5",
       name: "Tech Support Assistant",
-      dateCreated: new Date("2023-08-12"),
+      dateCreated: "2023-08-12",
     },
     {
       id: "6",
       name: "Sales Representative",
-      dateCreated: new Date("2023-09-18"),
+      dateCreated: "2023-09-18",
     },
   ]
 
@@ -79,6 +83,7 @@ export function CreateSidebar() {
         <Button
           className="w-full gap-2 bg-gradient-to-r from-pink-400 to-pink-600 text-white hover:opacity-90 rounded-full"
           size="sm"
+          onClick={() => setCurrentStep(0)}
         >
           <PlusCircle size={16} />
           <span>New persona</span>
@@ -102,7 +107,10 @@ export function CreateSidebar() {
           {filteredPersonas.length > 0 ? (
             filteredPersonas.map((persona) => (
               <SidebarMenuItem key={persona.id}>
-                <SidebarMenuButton className="rounded-md text-sm py-1.5 px-3 h-auto">
+                <SidebarMenuButton 
+                  className="rounded-md text-sm py-1.5 px-3 h-auto"
+                  onClick={() => setCurrentStep(4)}
+                >
                   <span className="truncate">{persona.name}</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
@@ -119,7 +127,7 @@ export function CreateSidebar() {
             VX
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-gray-700 truncate">Voxen AI</p>
+            <p className="text-sm font-medium text-gray-700 truncate">slynk AI</p>
             <p className="text-xs text-gray-500">Professional</p>
           </div>
         </div>

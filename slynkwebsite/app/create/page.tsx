@@ -14,12 +14,12 @@ import { SidebarProvider } from "@/components/ui/sidebar"
 import Link from "next/link"
 
 interface FormData {
-  email: string
   productName: string
   description: string
   pageLink: string
   adImage: File | null
   voiceSample: File | null
+  selectedVoice: string
   qaPairs: Array<{
     id: string
     question: string
@@ -35,15 +35,21 @@ const STEPS = [
   { name: "Review", description: "Review and submit" },
 ]
 
+const VOICE_OPTIONS = [
+  { id: 'voice1', name: 'Voice 1', previewUrl: '/voices/voice1.mp3' },
+  { id: 'voice2', name: 'Voice 2', previewUrl: '/voices/voice2.mp3' },
+  { id: 'voice3', name: 'Voice 3', previewUrl: '/voices/voice3.mp3' },
+]
+
 export default function CreatePage() {
   const [currentStep, setCurrentStep] = useState(0)
   const [formData, setFormData] = useState<FormData>({
-    email: "",
     productName: "",
     description: "",
     pageLink: "",
     adImage: null,
     voiceSample: null,
+    selectedVoice: "",
     qaPairs: [
       {
         id: "qa-1",
@@ -93,6 +99,7 @@ export default function CreatePage() {
         return (
           <div className="space-y-6">
             <h2 className="text-2xl font-bold text-gray-800">Basic Information</h2>
+            {/*}
             <AnimatedInput
               label="Email Address"
               type="email"
@@ -101,7 +108,7 @@ export default function CreatePage() {
               name="email"
               value={formData.email}
               onChange={handleInputChange}
-            />
+            />*/}
             <AnimatedInput
               label="Product or Event Name"
               placeholder="Enter the name of your product or event"
@@ -159,16 +166,77 @@ export default function CreatePage() {
           <div className="space-y-6">
             <h2 className="text-2xl font-bold text-gray-800">Voice Customization</h2>
             <p className="text-sm text-gray-600">
-              Upload a voice sample to customize how your AI persona sounds. This is optional but recommended for a more
-              personalized experience.
+              Upload a voice sample to customize how your AI persona sounds, or choose from one of our preset voices. 
             </p>
-            <FileDropZone
-              label="Voice Sample (Optional)"
-              accept="audio/*"
-              icon="audio"
-              onChange={(file) => handleFileChange("voiceSample", file)}
-              value={formData.voiceSample}
-            />
+            
+            <div className="space-y-4">
+              <h3 className="text-lg font-medium text-gray-700">Preset Voices</h3>
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                {VOICE_OPTIONS.map((voice) => (
+                  <div
+                    key={voice.id}
+                    className={`flex cursor-pointer flex-col items-center rounded-lg border p-4 transition-all ${
+                      formData.selectedVoice === voice.id
+                        ? 'border-pink-500 bg-pink-50'
+                        : 'border-gray-200 hover:border-pink-300'
+                    }`}
+                    onClick={() => setFormData(prev => ({ ...prev, selectedVoice: voice.id }))}
+                  >
+                    <div className="mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-pink-100">
+                      <svg
+                        className="h-6 w-6 text-pink-500"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"
+                        />
+                      </svg>
+                    </div>
+                    <span className="text-sm font-medium text-gray-700">{voice.name}</span>
+                    <button
+                      type="button"
+                      className="mt-2 rounded-full bg-pink-500 px-3 py-1 text-xs font-medium text-white hover:bg-pink-600"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        const audio = new Audio(voice.previewUrl);
+                        audio.play();
+                      }}
+                    >
+                      Preview
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="mt-6">
+              <h3 className="mb-2 text-lg font-medium text-gray-700">Or Upload Your Own Voice</h3>
+              <FileDropZone
+                label="Voice Sample (Optional)"
+                accept="audio/*"
+                icon="audio"
+                onChange={(file) => handleFileChange("voiceSample", file)}
+                value={formData.voiceSample}
+              />
+              {formData.voiceSample && (
+                <button
+                  type="button"
+                  className="mt-2 rounded-full bg-pink-500 px-3 py-1 text-xs font-medium text-white hover:bg-pink-600"
+                  onClick={() => {
+                    const audio = new Audio(URL.createObjectURL(formData.voiceSample!));
+                    audio.play();
+                  }}
+                >
+                  Preview Your Voice
+                </button>
+              )}
+            </div>
+
             <div className="mt-6 rounded-lg bg-blue-50 p-4">
               <h3 className="mb-2 flex items-center gap-2 text-sm font-medium text-blue-700">
                 <Sparkles size={16} />
@@ -189,9 +257,10 @@ export default function CreatePage() {
               <div>
                 <h3 className="mb-2 text-sm font-medium text-gray-500">Basic Information</h3>
                 <div className="rounded-lg bg-gray-50 p-4">
-                  <p className="mb-2">
-                    <span className="font-medium">Email:</span> {formData.email}
-                  </p>
+                  {/*<p className="mb-2">
+                  //  <span className="font-medium">Email:</span> {formData.email}
+                  </p> */}
+
                   <p>
                     <span className="font-medium">Product/Event:</span> {formData.productName}
                   </p>
@@ -243,7 +312,7 @@ export default function CreatePage() {
                 <h3 className="mb-2 text-sm font-medium text-gray-500">Voice Sample</h3>
                 <div className="rounded-lg bg-gray-50 p-4">
                   <p>
-                    <span className="font-medium">Voice Sample:</span>{" "}
+                    <span className="font-medium">Voice Selected:</span>{" "}
                     {formData.voiceSample ? formData.voiceSample.name : "None provided"}
                   </p>
                 </div>
@@ -259,7 +328,7 @@ export default function CreatePage() {
   return (
     <div className="flex h-screen bg-white">
       <SidebarProvider>
-        <CreateSidebar />
+        <CreateSidebar setCurrentStep={setCurrentStep} />
         <div className="flex-1 flex flex-col overflow-hidden">
           {/* Header */}
           <header className="border-b border-gray-200 bg-white p-4 flex items-center justify-between">

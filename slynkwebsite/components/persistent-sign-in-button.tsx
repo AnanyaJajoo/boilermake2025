@@ -9,12 +9,14 @@ interface PersistentSignInButtonProps {
   variant?: "default" | "subtle" | "outline" | "text"
   size?: "sm" | "default" | "lg"
   className?: string
+  onSignInClick?: () => void
 }
 
 export function PersistentSignInButton({
   variant = "default",
   size = "default",
   className,
+  onSignInClick,
 }: PersistentSignInButtonProps) {
   const [isSignInOpen, setIsSignInOpen] = useState(false)
 
@@ -39,7 +41,10 @@ export function PersistentSignInButton({
   return (
     <>
       <Button
-        onClick={() => setIsSignInOpen(true)}
+        onClick={() => {
+          setIsSignInOpen(true)
+          onSignInClick?.()
+        }}
         className={`flex items-center gap-2 font-medium rounded-lg ${buttonStyle} ${sizeStyle} ${className}`}
       >
         <LogIn className="w-4 h-4" />
