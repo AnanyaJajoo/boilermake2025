@@ -1,0 +1,11 @@
+{
+	"dependencies": {
+		"@auth/prisma-adapter": "^2.9.0",
+		"next-auth": "^4.24.11",
+		"nodemailer": "^6.10.1",
+		"prisma": "^6.6.0"
+	},
+	"devDependencies": {
+		"@types/nodemailer": "^6.4.17"
+	}
+}

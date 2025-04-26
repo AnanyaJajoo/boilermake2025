@@ -83,11 +83,36 @@ const config: Config = {
   				to: {
   					height: '0'
   				}
-  			}
+  			},
+  			fadeIn: {
+  				'0%': { opacity: '0', transform: 'translateY(10px)' },
+  				'100%': { opacity: '1', transform: 'translateY(0)' }
+  			},
+        'border-flow': {
+          '0%': { 
+            backgroundPosition: '0% 50%',
+            borderColor: 'rgba(236, 72, 153, 0.7)'
+          },
+          '50%': { 
+            backgroundPosition: '100% 50%',
+            borderColor: 'rgba(139, 92, 246, 0.7)'
+          },
+          '100%': { 
+            backgroundPosition: '0% 50%',
+            borderColor: 'rgba(236, 72, 153, 0.7)'
+          }
+        },
+        'pulse-slow': {
+          '0%, 100%': { opacity: '0.7' },
+          '50%': { opacity: '0.4' }
+        }
   		},
   		animation: {
   			'accordion-down': 'accordion-down 0.2s ease-out',
-  			'accordion-up': 'accordion-up 0.2s ease-out'
+  			'accordion-up': 'accordion-up 0.2s ease-out',
+  			fadeIn: 'fadeIn 0.3s ease-out forwards',
+        'border-flow': 'border-flow 5s ease infinite',
+        'pulse-slow': 'pulse-slow 3s cubic-bezier(0.4, 0, 0.6, 1) infinite'
   		}
   	}
   },

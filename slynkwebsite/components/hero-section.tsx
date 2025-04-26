@@ -1,14 +1,66 @@
 "use client"
 
+import { useState } from "react"
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
 import { ShineBorder } from "@/components/ui/shine-border"
-import { Play } from "lucide-react"
+import { Mail } from "lucide-react"
 import Image from "next/image"
 import { AnimatedText } from "@/components/animated-text"
-import Link from "next/link"
+import { toast } from "@/components/ui/use-toast"
 import { AnimatedEmojiBackground } from "@/components/animated-emoji-background"
+import { motion } from "framer-motion"
 
 export function HeroSection() {
+  const [email, setEmail] = useState("")
+  const [isSubmitting, setIsSubmitting] = useState(false)
+
+  const handleWaitlistSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    
+    if (!email.trim() || !email.includes('@')) {
+      toast({
+        title: "Invalid Email",
+        description: "Please enter a valid email address",
+        variant: "destructive",
+      })
+      return
+    }
+    
+    setIsSubmitting(true)
+    
+    try {
+      // Submit to our API endpoint
+      const response = await fetch('/api/waitlist', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email })
+      })
+      
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to submit')
+      }
+      
+      toast({
+        title: "Success!",
+        description: "You've been added to our waitlist. We'll notify you when we launch!",
+        variant: "default",
+      })
+      
+      setEmail("")
+    } catch (error) {
+      console.error("Error submitting to waitlist:", error)
+      toast({
+        title: "Submission Failed",
+        description: error instanceof Error ? error.message : "There was an error adding you to the waitlist. Please try again.",
+        variant: "destructive",
+      })
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
   return (
     <section className="relative min-h-screen pt-32 pb-16 overflow-hidden bg-white">
       <AnimatedEmojiBackground />
@@ -27,10 +79,41 @@ export function HeroSection() {
             <br />
             with AI personas
           </h1>
-          <p className="text-gray-600 text-lg mb-8 max-w-2xl mx-auto">
+          <p className="text-gray-600 text-lg mb-10 max-w-2xl mx-auto">
             Transform static advertisements into engaging, conversational experiences. Upload your content and let our
             AI-driven avatars tell your story.
           </p>
+          
+          {/* Animated Gradient Border */}
+          <div className="relative max-w-2xl mx-auto">
+            {/* Animated gradient border */}
+            <div className="absolute -inset-1 rounded-xl bg-gradient-to-r from-pink-400 via-purple-500 to-blue-500 opacity-75 blur-sm animate-border-flow"></div>
+            
+            {/* Waitlist Form */}
+            <form onSubmit={handleWaitlistSubmit} className="relative flex flex-col sm:flex-row gap-3 bg-white rounded-xl p-1">
+              <div className="relative flex-grow">
+                <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+                <Input
+                  type="email"
+                  placeholder="Enter your email"
+                  className="pl-12 h-14 text-base rounded-lg border-none shadow-inner bg-gray-50/80 focus:ring-2 focus:ring-pink-300 focus:bg-white transition-all"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                />
+              </div>
+              <Button 
+                type="submit" 
+                className="h-14 px-8 text-base font-medium bg-gradient-to-r from-pink-400 to-pink-600 text-white hover:opacity-90 rounded-lg transition-transform hover:scale-105"
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? "Adding..." : "Join Waitlist"}
+              </Button>
+            </form>
+          </div>
+          
+          {/* Original buttons (commented out) */}
+          {/*
           <div className="flex gap-4 justify-center relative z-20">
             <Button
               variant="outline"
@@ -46,6 +129,7 @@ export function HeroSection() {
               </Button>
             </Link>
           </div>
+          */}
         </div>
 
         <ShineBorder className="relative mx-auto" borderClassName="rounded-xl overflow-hidden pink-glow">

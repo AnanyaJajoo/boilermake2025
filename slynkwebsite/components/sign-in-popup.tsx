@@ -84,11 +84,11 @@ export function SignInPopup({ isOpen, onClose }: SignInPopupProps) {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.9, y: 20 }}
             transition={{ type: "spring", damping: 25, stiffness: 300 }}
-            className="relative bg-white dark:bg-gray-900 rounded-2xl shadow-xl w-full max-w-md mx-4 overflow-hidden"
+            className="relative bg-white dark:bg-gray-900 rounded-xl shadow-xl w-full max-w-md mx-4 overflow-hidden"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="absolute top-4 right-4">
-              <Button variant="ghost" size="icon" onClick={onClose} className="rounded-full hover:bg-gray-100 dark:hover:bg-gray-800">
+              <Button variant="ghost" size="icon" onClick={onClose} className="rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800">
                 <X size={20} />
               </Button>
             </div>
@@ -96,7 +96,7 @@ export function SignInPopup({ isOpen, onClose }: SignInPopupProps) {
             {/* Logo and header */}
             <div className="p-8">
               <div className="text-center mb-6">
-                <div className="mx-auto w-12 h-12 mb-4 bg-gradient-to-r from-pink-400 to-pink-600 rounded-full flex items-center justify-center">
+                <div className="mx-auto w-12 h-12 mb-4 bg-gradient-to-r from-pink-400 to-pink-600 rounded-lg flex items-center justify-center">
                   <LogIn className="text-white" size={24} />
                 </div>
                 <h2 className="text-2xl font-bold text-gray-900 dark:text-white">{isLogin ? "Welcome back" : "Create your account"}</h2>
@@ -106,14 +106,17 @@ export function SignInPopup({ isOpen, onClose }: SignInPopupProps) {
               </div>
 
               {/* Google sign in button */}
-              <Button
-                onClick={handleGoogleSignIn}
-                variant="outline"
-                className="w-full mb-4 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 border border-gray-300 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 font-medium flex items-center justify-center gap-2"
-              >
-                <Image src="/google-icon.svg" alt="Google" width={18} height={18} className="w-5 h-5" />
-                <span>Continue with Google</span>
-              </Button>
+              <div className="relative">
+                <div className="absolute -inset-1 rounded-lg bg-gradient-to-r from-pink-400 via-purple-500 to-blue-500 opacity-75 blur-sm"></div>
+                <Button
+                  onClick={handleGoogleSignIn}
+                  variant="outline"
+                  className="relative w-full mb-4 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 border border-gray-300 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 font-medium flex items-center justify-center gap-2 rounded-lg"
+                >
+                  <Image src="/google-icon.svg" alt="Google" width={18} height={18} className="w-5 h-5" />
+                  <span>Continue with Google</span>
+                </Button>
+              </div>
 
               {/* Divider */}
               <div className="relative my-4">
@@ -133,87 +136,90 @@ export function SignInPopup({ isOpen, onClose }: SignInPopupProps) {
               )}
 
               {/* Form */}
-              <form className="space-y-4" onSubmit={handleSubmit}>
-                {!isLogin && (
+              <div className="relative">
+                <div className="absolute -inset-1 rounded-lg bg-gradient-to-r from-pink-400 via-purple-500 to-blue-500 opacity-75 blur-sm"></div>
+                <form className="relative space-y-4 p-4 bg-white dark:bg-gray-900 rounded-lg" onSubmit={handleSubmit}>
+                  {!isLogin && (
+                    <div className="space-y-2">
+                      <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                        Name
+                      </label>
+                      <div className="relative">
+                        <Input
+                          id="name"
+                          value={name}
+                          onChange={(e) => setName(e.target.value)}
+                          placeholder="John Doe"
+                          className="pl-10"
+                          required={!isLogin}
+                        />
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                          <span className="text-gray-500 dark:text-gray-400">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="w-5 h-5">
+                              <circle cx="12" cy="8" r="5" />
+                              <path d="M20 21C20 16.5817 16.4183 13 12 13C7.58172 13 4 16.5817 4 21" />
+                            </svg>
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
                   <div className="space-y-2">
-                    <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                      Name
+                    <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      Email
                     </label>
                     <div className="relative">
                       <Input
-                        id="name"
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
-                        placeholder="John Doe"
+                        id="email"
+                        type="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        placeholder="you@example.com"
                         className="pl-10"
-                        required={!isLogin}
+                        required
                       />
                       <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <span className="text-gray-500 dark:text-gray-400">
-                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="w-5 h-5">
-                            <circle cx="12" cy="8" r="5" />
-                            <path d="M20 21C20 16.5817 16.4183 13 12 13C7.58172 13 4 16.5817 4 21" />
-                          </svg>
-                        </span>
+                        <Mail className="h-5 w-5 text-gray-500 dark:text-gray-400" />
                       </div>
                     </div>
                   </div>
-                )}
 
-                <div className="space-y-2">
-                  <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Email
-                  </label>
-                  <div className="relative">
-                    <Input
-                      id="email"
-                      type="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder="you@example.com"
-                      className="pl-10"
-                      required
-                    />
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <Mail className="h-5 w-5 text-gray-500 dark:text-gray-400" />
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                        Password
+                      </label>
+                      {isLogin && (
+                        <a href="#" className="text-sm text-pink-500 hover:text-pink-600 dark:text-pink-400">
+                          Forgot password?
+                        </a>
+                      )}
+                    </div>
+                    <div className="relative">
+                      <Input
+                        id="password"
+                        type="password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        placeholder="••••••••"
+                        className="pl-10"
+                        required
+                      />
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <Lock className="h-5 w-5 text-gray-500 dark:text-gray-400" />
+                      </div>
                     </div>
                   </div>
-                </div>
 
-                <div className="space-y-2">
-                  <div className="flex justify-between">
-                    <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                      Password
-                    </label>
-                    {isLogin && (
-                      <a href="#" className="text-sm text-pink-500 hover:text-pink-600 dark:text-pink-400">
-                        Forgot password?
-                      </a>
-                    )}
-                  </div>
-                  <div className="relative">
-                    <Input
-                      id="password"
-                      type="password"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      placeholder="••••••••"
-                      className="pl-10"
-                      required
-                    />
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <Lock className="h-5 w-5 text-gray-500 dark:text-gray-400" />
-                    </div>
-                  </div>
-                </div>
-
-                <Button
-                  type="submit"
-                  className="w-full bg-gradient-to-r from-pink-400 to-pink-600 hover:from-pink-500 hover:to-pink-700 text-white shadow-md"
-                >
-                  {isLogin ? "Sign In" : "Create Account"}
-                </Button>
-              </form>
+                  <Button
+                    type="submit"
+                    className="w-full bg-gradient-to-r from-pink-400 to-pink-600 hover:from-pink-500 hover:to-pink-700 text-white shadow-md rounded-lg"
+                  >
+                    {isLogin ? "Sign In" : "Create Account"}
+                  </Button>
+                </form>
+              </div>
 
               <div className="mt-6 text-center text-sm">
                 <span className="text-gray-600 dark:text-gray-400">
