@@ -6,11 +6,15 @@ import { Providers } from "./providers"
 
 const inter = Inter({ subsets: ["latin"] })
 
-export const metadata: Metadata = {
-  title: "Voxen - Interactive Virtual Spokespersons",
-  description: "Transform static advertisements into engaging, conversational experiences with AI-driven avatars",
-    generator: 'v0.dev'
-}
+export const metadata = {
+  title: "Slynk",
+  description: "Reinventing Ads with Live Interaction",
+  icons: {
+    icon: [
+      { url: "/slynkicon.svg", type: "image/x-icon" },
+    ],
+  },
+};
 
 export default function RootLayout({
   children,
