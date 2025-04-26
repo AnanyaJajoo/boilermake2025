@@ -11,6 +11,7 @@ VOICE_IDS = {
     "gal_gadot": "6bec89b7-f64e-4ba4-9d56-9f17400ff814",
     "robert_pattinson": "7d751ed8-8f13-4223-ab2f-a428298194eb",
     "jason_momoa": "91e0c8fc-26bd-4adb-9c9b-37afa6714b08",
+    "bhee": "34575e71-908f-4ab6-ab54-b08c95d6597d",
     "GENERIC_FEMALE" :"6f84f4b8-58a2-430c-8c79-688dad597532",
     "GENERIC_MALE" : "8d110413-2f14-44a2-8203-2104db4340e9"
 }
@@ -79,10 +80,11 @@ def main():
 
     # for each file in below list, get audio
     metadata_files = {
-        './db/metadata/aaron_judge.txt' : VOICE_IDS["aaron_judge"],
-        './db/metadata/mickey_17.txt' : VOICE_IDS["robert_pattinson"],
-        './db/metadata/snow_white.txt' : VOICE_IDS["gal_gadot"],
-        './db/metadata/minecraft_movie.txt' : VOICE_IDS["jason_momoa"],
+        # './db/metadata/aaron_judge.txt' : VOICE_IDS["aaron_judge"],
+        # './db/metadata/mickey_17.txt' : VOICE_IDS["robert_pattinson"],
+        # './db/metadata/snow_white.txt' : VOICE_IDS["gal_gadot"],
+        # './db/metadata/minecraft_movie.txt' : VOICE_IDS["jason_momoa"],
+        './db/metadata/bhee.txt' : VOICE_IDS["bhee"],
     }
 
     for file, voice_id in metadata_files.items():

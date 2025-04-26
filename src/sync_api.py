@@ -170,13 +170,14 @@ def new_main():
     # serve images
     image_paths_header = Path("db/images")
     audio_stubs = [
-        "snow_white",
-        "minecraft_movie",
-        "aaron_judge",
-        "mickey_17"
+        # "snow_white",
+        # "minecraft_movie",
+        # "aaron_judge",
+        "mickey_17",
+        "bhee"
     ]
 
-    server_url = "https://421c-128-210-106-81.ngrok-free.app"
+    server_url = "https://591e-2607-ac80-404-2-965-792b-b54d-39c8.ngrok-free.app"
     audio_url = server_url + "/audio"
     video_url = server_url + "/video"
 
@@ -261,6 +262,7 @@ def new_main():
                 print(f"{i}", end="\r")
 
             print("[DEBUG]: i: ", i)
+            print()
 
             output_url = (video_out:=video_gen)["outputUrl"]
             response = requests.get(output_url)
