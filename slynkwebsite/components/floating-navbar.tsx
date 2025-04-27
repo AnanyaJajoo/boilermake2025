@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import { Home, Users } from "lucide-react"
+import { Home, Users, Sparkles } from "lucide-react"
 import { Logo } from "@/components/logo"
 
 interface FloatingNavbarProps {
@@ -85,6 +85,22 @@ export function FloatingNavbar({ alwaysShow = false }: FloatingNavbarProps) {
               <span className="flex items-center gap-2">
                 <Users size={18} className="text-gray-700" />
                 <span className="font-medium text-sm text-gray-800">Customers</span>
+              </span>
+              <motion.div
+                className="absolute bottom-1 left-4 right-4 h-0.5 bg-pink-500 origin-left"
+                initial={{ scaleX: 0 }}
+                whileHover={{ scaleX: 1 }}
+                transition={{ duration: 0.3 }}
+              />
+            </motion.button>
+
+            <motion.button
+              onClick={() => navigateTo("/adgen")}
+              className="relative group px-4 py-2 rounded-full transition-colors hover:bg-gray-100"
+            >
+              <span className="flex items-center gap-2">
+                <Sparkles size={18} className="text-gray-700" />
+                <span className="font-medium text-sm text-gray-800">Ad Gen</span>
               </span>
               <motion.div
                 className="absolute bottom-1 left-4 right-4 h-0.5 bg-pink-500 origin-left"

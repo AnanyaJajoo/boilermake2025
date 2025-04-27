@@ -47,18 +47,19 @@ export function CreateSidebar() {
       }
       
       const data = await response.json()
-      setPersonas(data)
+      setPersonas(Array.isArray(data) ? data : [])
     } catch (error) {
       console.error("Error fetching personas:", error)
+      setPersonas([])
     } finally {
       setLoading(false)
     }
   }
 
   // Filter personas based on search query
-  const filteredPersonas = personas.filter((persona) =>
-    persona.name.toLowerCase().includes(searchQuery.toLowerCase()),
-  )
+  const filteredPersonas = Array.isArray(personas) 
+    ? personas.filter((persona) => persona.name.toLowerCase().includes(searchQuery.toLowerCase()))
+    : []
 
   return (
     <Sidebar className="w-64 border-r border-gray-200 bg-white" collapsible="none">

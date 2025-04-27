@@ -12,7 +12,8 @@ import {
   Users, 
   LogOut,
   Menu,
-  X
+  X,
+  Sparkles
 } from "lucide-react"
 import { Logo } from "@/components/logo"
 import { Button } from "@/components/ui/button"
@@ -48,6 +49,7 @@ export function Navbar() {
     { name: "Dashboard", href: "/dashboard", icon: Grid3x3, active: pathname === "/dashboard" },
     { name: "Create", href: "/create", icon: Plus, active: pathname === "/create" },
     { name: "Customers", href: "/customers", icon: Users, active: pathname === "/customers" },
+    { name: "Ad Gen", href: "/adgen", icon: Sparkles, active: pathname === "/adgen" },
   ]
 
   if (!session) {
