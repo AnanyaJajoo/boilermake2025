@@ -7,6 +7,17 @@ import FirebaseAuth
 import FirebaseFirestore
 //import TranscriptionKit
 
+// Add a global projectPoint function
+func projectPoint(_ point: SIMD4<Float>, in view: ARView) -> CGPoint? {
+    // Project the 3D world point to 2D screen space
+    let screenPos = view.project(SIMD3<Float>(point.x, point.y, point.z))
+    
+    // Check if projection was successful
+    guard let screenPosition = screenPos else { return nil }
+    
+    return CGPoint(x: CGFloat(screenPosition.x), y: CGFloat(screenPosition.y))
+}
+
 struct ContentView: View {
     @State private var isMenuExpanded = false
         @State private var isARActive = true
@@ -382,10 +393,14 @@ struct ARViewContainer: UIViewRepresentable {
         context.coordinator.preloadTextureL()
         context.coordinator.preloadTextureC()
         
-        // Add tap gesture recognizer
+        // Add tap gesture recognizer for image anchors
         let tapGesture = UILongPressGestureRecognizer(target: context.coordinator, action: #selector(Coordinator.handleLongPress(_:)))
         tapGesture.minimumPressDuration = 0.01 // Make it react quickly to begin tracking long press
         arView.addGestureRecognizer(tapGesture)
+        
+        // Add tap gesture recognizer for Simli agents
+        let simliTapGesture = UITapGestureRecognizer(target: context.coordinator, action: #selector(Coordinator.handleSimliTap(_:)))
+        arView.addGestureRecognizer(simliTapGesture)
         
         return arView
     }
@@ -574,7 +589,7 @@ struct ARViewContainer: UIViewRepresentable {
                 }
                 
                 // Check if the anchor is still being tracked
-                let isAnchorVisible = self.isAnchorVisible(anchorID: currentID)
+                let isAnchorVisible = self.isImageAnchorVisible(anchorID: currentID)
                 
                 if isAnchorVisible {
                     // Update the last seen time
@@ -597,19 +612,28 @@ struct ARViewContainer: UIViewRepresentable {
             }
         }
         
-        private func isAnchorVisible(anchorID: UUID) -> Bool {
+        private func isImageAnchorVisible(anchorID: UUID) -> Bool {
             guard let arView = arView,
+                  let anchorEntity = anchors[anchorID],
                   let frame = arView.session.currentFrame else {
                 return false
             }
             
-            // Check if the specific anchor is still being tracked
-            for anchor in frame.anchors {
-                if anchor.identifier == anchorID {
-                    if let imageAnchor = anchor as? ARImageAnchor {
-                        return imageAnchor.isTracked
-                    }
-                }
+            // Get the position of the anchor
+            let anchorPosition = anchorEntity.transform.matrix.columns.3
+            
+            // Project the anchor position to the screen
+            if let screenPos = projectPoint(anchorPosition, in: arView) {
+                // Check if the position is within the bounds of the screen
+                let isOnScreen = arView.bounds.contains(screenPos)
+                
+                // Check if the anchor is not too far away (could adjust this threshold)
+                let distance = simd_distance(
+                    SIMD3<Float>(frame.camera.transform.columns.3.x, frame.camera.transform.columns.3.y, frame.camera.transform.columns.3.z),
+                    SIMD3<Float>(anchorPosition.x, anchorPosition.y, anchorPosition.z)
+                )
+                
+                return isOnScreen && distance < 3.0  // 3 meters max distance
             }
             
             return false
@@ -652,9 +676,6 @@ struct ARViewContainer: UIViewRepresentable {
         }
         
         private func projectPoint(_ point: SIMD4<Float>, in view: ARView) -> CGPoint? {
-            // Use ARKit's projection method directly instead of manual calculation
-            guard let camera = view.session.currentFrame?.camera else { return nil }
-            
             // Project the 3D world point to 2D screen space
             let screenPos = view.project(SIMD3<Float>(point.x, point.y, point.z))
             
@@ -678,8 +699,8 @@ struct ARViewContainer: UIViewRepresentable {
                 if let imageAnchor = anchor as? ARImageAnchor {
                     let anchorPosition = imageAnchor.transform.columns.3
                     let distance = simd_distance(
-                        SIMD3(position.x, position.y, position.z),
-                        SIMD3(anchorPosition.x, anchorPosition.y, anchorPosition.z)
+                        SIMD3<Float>(position.x, position.y, position.z),
+                        SIMD3<Float>(anchorPosition.x, anchorPosition.y, anchorPosition.z)
                     )
                     
                     if distance < minDistance {
@@ -836,6 +857,12 @@ struct ARViewContainer: UIViewRepresentable {
             playerC?.replaceCurrentItem(with: nil)
             playerC = nil
             
+            // Clean up Simli resources
+            stopTrackingSimliAgents()
+            for (anchorID, _) in simliViews {
+                removeSimliAgent(anchorID: anchorID)
+            }
+            
             // Remove observers to prevent memory leaks
             NotificationCenter.default.removeObserver(self)
             
@@ -969,7 +996,7 @@ struct ARViewContainer: UIViewRepresentable {
                                 self.playerL?.volume = 1.0
                                 self.playerL?.isMuted = false
                                 
-                                var videoMaterial = VideoMaterial(avPlayer: self.playerL!)
+                                let videoMaterial = VideoMaterial(avPlayer: self.playerL!)
                                 imageEntity.model?.materials = [videoMaterial]
                                 print("Playing next lebron video")
                                 
@@ -1018,7 +1045,7 @@ struct ARViewContainer: UIViewRepresentable {
                                 self.playerC?.volume = 1.0
                                 self.playerC?.isMuted = false
                                 
-                                var videoMaterial = VideoMaterial(avPlayer: self.playerC!)
+                                let videoMaterial = VideoMaterial(avPlayer: self.playerC!)
                                 imageEntity.model?.materials = [videoMaterial]
                                 print("Playing next chanel video")
                                 
@@ -1144,11 +1171,11 @@ struct ARViewContainer: UIViewRepresentable {
             let planeMesh = MeshResource.generatePlane(width: physicalWidth, height: physicalHeight)
             let imageEntity = ModelEntity(mesh: planeMesh)
             
-            let anchorEntity = AnchorEntity(anchor: imageAnchor)
+            let anchorEntity = AnchorEntity(world: imageAnchor.transform)
             anchorEntity.addChild(imageEntity)
             print("Player Playing")
             imageEntity.position.z = 0.001
-            imageEntity.setPosition(SIMD3(0, 0, 0), relativeTo: anchorEntity)
+            imageEntity.setPosition(SIMD3<Float>(0, 0, 0), relativeTo: anchorEntity)
             imageEntity.setOrientation(simd_quatf(angle: -.pi / 2, axis: [1, 0, 0]), relativeTo: anchorEntity)
             
             DispatchQueue.main.async {
@@ -1180,7 +1207,7 @@ struct ARViewContainer: UIViewRepresentable {
                     player = AVPlayer(url: videoURL)
                     player?.volume = 1.0 // Ensure volume is at maximum
                     
-                    var videoMaterial = VideoMaterial(avPlayer: player!)
+                    let videoMaterial = VideoMaterial(avPlayer: player!)
                     imageEntity.model?.materials = [videoMaterial]
                     player!.seek(to: .zero)
                     player!.play()
@@ -1205,7 +1232,7 @@ struct ARViewContainer: UIViewRepresentable {
                     player2 = AVPlayer(url: videoURL)
                     player2?.volume = 1.0 // Ensure volume is at maximum
                     
-                    var videoMaterial = VideoMaterial(avPlayer: player2!)
+                    let videoMaterial = VideoMaterial(avPlayer: player2!)
                     imageEntity.model?.materials = [videoMaterial]
                     player2!.seek(to: .zero)
                     player2!.play()
@@ -1265,6 +1292,14 @@ struct ARViewContainer: UIViewRepresentable {
             }
         }
         
+        @objc func handleSimliTap(_ gesture: UITapGestureRecognizer) {
+            // Check if gesture is in the correct state
+            if gesture.state == .ended {
+                // Use the SimliARExtension method to handle the tap
+                handleTapForSimliAgent(gesture)
+            }
+        }
+        
         @MainActor func session(_ session: ARSession, didAdd anchors: [ARAnchor]) {
             for anchor in anchors {
                 guard let imageAnchor = anchor as? ARImageAnchor else {
@@ -1281,7 +1316,7 @@ struct ARViewContainer: UIViewRepresentable {
             // This is called when anchors are updated (including tracking state changes)
             if let currentID = currentPlayingAnchorID, isVideoPlaying {
                 // Refresh the visible state of the current playing anchor
-                let isVisible = isAnchorVisible(anchorID: currentID)
+                let isVisible = isImageAnchorVisible(anchorID: currentID)
                 if isVisible {
                     lastSeenTime = Date()
                 }

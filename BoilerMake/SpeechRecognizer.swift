@@ -126,7 +126,11 @@ public actor SpeechRecognizer: Observable {
         try audioSession.setActive(true, options: .notifyOthersOnDeactivation)
         let inputNode = audioEngine.inputNode
         
+        // Use the native format from the input device
         let recordingFormat = inputNode.outputFormat(forBus: 0)
+        print("Speech recognition using native format: \(recordingFormat)")
+        
+        // Install tap with the native format
         inputNode.installTap(onBus: 0, bufferSize: 1024, format: recordingFormat) { (buffer: AVAudioPCMBuffer, when: AVAudioTime) in
             request.append(buffer)
         }

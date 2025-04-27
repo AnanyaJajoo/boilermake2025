@@ -18,5 +18,11 @@
 	</array>
 	<key>GIDClientID</key>
 	<string>900099320114-k435efjaa4ftn0g3e2e072sonjh3nagq.apps.googleusercontent.com</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Camera access is required for AR experiences and video calls.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Microphone access is required to interact with virtual assistants and for audio calls.</string>
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>Local network access is required for WebRTC connections.</string>
 </dict>
 </plist>

@@ -116,3 +116,73 @@ During development, you can set `USE_MOCK_API=true` in your `.env.local` file to
 ## License
 
 MIT 
+
+# BoilerMake Simli AR Integration
+
+This project demonstrates integrating Simli AI avatars with AR functionality in an iOS app.
+
+## Features
+
+- AR scene detection and image tracking
+- Simli AI avatar integration using WebRTC
+- Real-time audio processing and transmission
+- Interactive virtual assistants in AR space
+
+## Setup
+
+1. Install CocoaPods dependencies:
+```
+pod install
+```
+
+2. Open the generated `.xcworkspace` file (not the `.xcodeproj` file).
+
+3. Update the Simli API key in `SimliARExtension.swift` with your own key:
+```swift
+addSimliAgent(at: hitTransform, apiKey: "YOUR_SIMLI_API_KEY")
+```
+
+4. Build and run the app on a physical iOS device (AR functionality works best on actual devices).
+
+## Usage
+
+1. Point the camera at a flat vertical surface.
+2. Tap on the surface to place a Simli agent.
+3. Speak to interact with the Simli agent.
+4. The agent will respond with audio and animated facial expressions.
+
+## Implementation Details
+
+The Simli integration consists of several key components:
+
+- `WebRTCManager`: Handles WebSocket connection and WebRTC session with Simli.
+- `AudioProcessor`: Captures and processes audio from the device microphone.
+- `SimliView`: Manages the UI presentation of the Simli agent.
+- `SimliARExtension`: Integrates Simli with AR functionality.
+
+## Requirements
+
+- iOS 14.0+
+- Xcode 13.0+
+- CocoaPods
+
+## Dependencies
+
+- GoogleWebRTC: WebRTC functionality
+- Starscream: WebSocket communication
+- FirebaseAuth/FirebaseFirestore: Authentication and data storage
+- HaishinKit: Enhanced audio processing
+
+## Troubleshooting
+
+- Ensure camera and microphone permissions are granted in device settings.
+- Check internet connectivity for WebRTC signaling.
+- For best AR tracking, use in well-lit environments with textured surfaces.
+
+## License
+
+This project is proprietary and confidential.
+
+## Contact
+
+For questions or support, contact the development team. 
