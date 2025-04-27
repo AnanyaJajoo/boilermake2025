@@ -96,7 +96,7 @@ export function HeroSection() {
                 <Input
                   type="email"
                   placeholder="Enter your email"
-                  className="pl-12 h-14 text-base rounded-lg border-none shadow-inner bg-gray-50/80 focus:ring-2 focus:ring-pink-300 focus:bg-white transition-all"
+                  className="pl-12 h-14 text-base rounded-xl border-none shadow-inner bg-gray-50/80 focus:ring-2 focus:ring-pink-300 focus:bg-white transition-all"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
@@ -104,7 +104,7 @@ export function HeroSection() {
               </div>
               <Button 
                 type="submit" 
-                className="h-14 px-8 text-base font-medium bg-gradient-to-r from-pink-400 to-pink-600 text-white hover:opacity-90 rounded-lg transition-transform hover:scale-105"
+                className="h-14 px-8 text-base font-medium bg-gradient-to-r from-pink-400 to-pink-600 text-white hover:opacity-90 rounded-xl transition-transform hover:scale-105"
                 disabled={isSubmitting}
               >
                 {isSubmitting ? "Adding..." : "Join Waitlist"}

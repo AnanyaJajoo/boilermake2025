@@ -74,21 +74,12 @@ const VideoBox: React.FC<VideoBoxProps> = ({ id }) => {
           videoTrack.track.enabled = true;
         }
         
-        // Try multiple methods to attach the video
-        try {
-          // First try the direct attach method
-          (videoTrack as any).attach(videoElement.current);
-          console.log("Video attached via direct method");
-        } catch (e) {
-          console.error("Direct attach failed, trying MediaStream method:", e);
-          
-          // Use MediaStream as fallback
-          if (videoTrack.track) {
-            const stream = new MediaStream([videoTrack.track]);
-            videoElement.current.srcObject = stream;
-            videoElement.current.play().catch(e => console.error("Error playing video:", e));
-            console.log("Video attached via MediaStream");
-          }
+        // Use MediaStream directly instead of trying to call attach
+        if (videoTrack.track) {
+          const stream = new MediaStream([videoTrack.track]);
+          videoElement.current.srcObject = stream;
+          videoElement.current.play().catch(e => console.error("Error playing video:", e));
+          console.log("Video attached via MediaStream");
         }
         
         // Force the video to play
@@ -116,9 +107,8 @@ const VideoBox: React.FC<VideoBoxProps> = ({ id }) => {
       if (videoTrack?.state === 'playable' && videoElement.current) {
         try {
           console.log(`Detaching video track for ${id}`);
-          (videoTrack as any).detach(videoElement.current);
           
-          // Also clear the srcObject if we set it manually
+          // Just clear the srcObject directly instead of trying to call detach
           if (videoElement.current.srcObject) {
             const stream = videoElement.current.srcObject as MediaStream;
             if (stream) {

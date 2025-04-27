@@ -33,7 +33,6 @@ export function VideoBox({
       trackProperties: videoTrack ? Object.keys(videoTrack) : []
     });
     
-    let attachedElement: HTMLVideoElement | null = null;
     const video = videoRef.current;
     
     if (!video) {
@@ -59,25 +58,8 @@ export function VideoBox({
     // Check if this is a Daily.co track with attach method
     const attachTrack = async () => {
       try {
-        // Case 1: Direct Daily.co track attachment
-        if (typeof videoTrack.attach === 'function') {
-          debugLog('Attempting direct Daily.co track attachment');
-          attachedElement = videoTrack.attach();
-          
-          if (attachedElement) {
-            // Copy video attributes from our ref to the attached element
-            attachedElement.muted = !!muteVideo;
-            attachedElement.className = className || '';
-            
-            // Replace our video element with the attached one
-            if (video.parentNode) {
-              video.parentNode.replaceChild(attachedElement, video);
-              setIsVideoAttached(true);
-              debugLog('Direct track attachment successful');
-              return true;
-            }
-          }
-        }
+        // Case 1: Daily.co direct track attachment - we now know this doesn't work reliably
+        // Skip this method and go straight to MediaStream approach
         
         // Case 2: Track is MediaStreamTrack or has getTrack() method
         debugLog('Trying MediaStream method');
@@ -127,17 +109,34 @@ export function VideoBox({
           return true;
         }
         
+        // Case 5: Track has persistentTrack property (specific to Daily.co)
+        if (videoTrack.persistentTrack && videoTrack.persistentTrack instanceof MediaStreamTrack) {
+          debugLog('Using persistentTrack property');
+          const newStream = new MediaStream([videoTrack.persistentTrack]);
+          video.srcObject = newStream;
+          video.muted = !!muteVideo;
+          video.play().catch((err: Error) => debugLog('Error playing video', err));
+          setMediaStream(newStream);
+          setIsVideoAttached(true);
+          return true;
+        }
+        
         debugLog('All attachment methods failed', { 
           hasAttachMethod: typeof videoTrack.attach === 'function',
           isMediaStreamTrack: videoTrack instanceof MediaStreamTrack,
           hasGetTrackMethod: typeof videoTrack.getTrack === 'function',
           isMediaStream: videoTrack instanceof MediaStream,
-          hasMediaStreamProp: !!videoTrack.mediaStream
+          hasMediaStreamProp: !!videoTrack.mediaStream,
+          hasPersistentTrack: !!videoTrack.persistentTrack
         });
+        
+        // Last resort: show error message and relevant debug info
+        console.error('Failed to attach video track with all methods. Track info:', videoTrack);
         
         return false;
       } catch (err) {
         debugLog('Error during video attachment', err);
+        console.error('VideoBox attachment error:', err);
         return false;
       }
     };
@@ -146,14 +145,25 @@ export function VideoBox({
     
     return () => {
       debugLog('Cleaning up video attachment');
-      // Clean up the attached element if we created one
-      if (attachedElement && attachedElement.parentNode) {
-        attachedElement.parentNode.removeChild(attachedElement);
-      }
       
       // Reset the video element's source
       if (video) {
-        video.srcObject = null;
+        if (video.srcObject) {
+          try {
+            // Stop all tracks in the stream
+            const stream = video.srcObject as MediaStream;
+            if (stream) {
+              stream.getTracks().forEach(track => {
+                track.stop();
+              });
+            }
+          } catch (err) {
+            debugLog('Error stopping media tracks', err);
+          }
+          
+          // Clear source
+          video.srcObject = null;
+        }
       }
       
       // Clear state

@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect, KeyboardEvent } from "react";
+import React, { useRef, useState, useEffect, KeyboardEvent, useCallback } from "react";
 import { DailyProvider, useDaily } from "@daily-co/daily-react";
 import Daily, { DailyCall } from "@daily-co/daily-js";
 import { RecoilRoot } from "recoil";
@@ -108,6 +108,45 @@ interface SimliAgentProps {
 // Component to handle video rendering with Daily context
 const VideoComponent = ({ id, name }: { id: string; name: string }) => {
   const daily = useDaily();
+  const [retryCount, setRetryCount] = useState(0);
+  const [videoError, setVideoError] = useState<string | null>(null);
+  
+  // Add retry mechanism for video connection
+  const retryVideoConnection = useCallback(() => {
+    if (!daily) return;
+    
+    console.log(`Attempting to retry video connection for ${id}...`);
+    setRetryCount(prev => prev + 1);
+    
+    // Force refresh participants data
+    const participants = daily.participants();
+    const participant = participants[id];
+    
+    if (participant) {
+      // Try to re-subscribe to tracks
+      try {
+        daily.updateParticipant(id, {
+          setSubscribedTracks: true
+        });
+      } catch (err) {
+        console.error("Error updating participant:", err);
+      }
+      
+      // Wait a moment and then clear error if fixed
+      setTimeout(() => {
+        const refreshedParticipants = daily.participants();
+        const refreshedParticipant = refreshedParticipants[id];
+        
+        if (refreshedParticipant) {
+          const videoTrack = refreshedParticipant?.tracks?.video;
+        
+          if (videoTrack?.state === 'playable') {
+            setVideoError(null);
+          }
+        }
+      }, 1500);
+    }
+  }, [daily, id]);
   
   useEffect(() => {
     console.log("VideoComponent mounted for ID:", id);
@@ -119,6 +158,32 @@ const VideoComponent = ({ id, name }: { id: string; name: string }) => {
       console.log("All participants:", participants);
       console.log("Looking for participant with ID:", id);
       console.log("Found participant:", participants[id]);
+      
+      // Monitor video track state changes
+      const checkVideoState = () => {
+        const currentParticipants = daily.participants();
+        const participant = currentParticipants[id];
+        
+        if (participant && participant.tracks && participant.tracks.video) {
+          const videoTrack = participant.tracks.video;
+          
+          if (videoTrack.state === 'interrupted' || videoTrack.state === 'blocked' || videoTrack.state === 'off') {
+            setVideoError(`Video track is ${videoTrack.state}`);
+          } else if (videoTrack.state === 'playable') {
+            setVideoError(null);
+          }
+        }
+      };
+      
+      // Initial check
+      checkVideoState();
+      
+      // Set up periodic checking for video issues
+      const intervalId = setInterval(checkVideoState, 5000);
+      
+      return () => {
+        clearInterval(intervalId);
+      };
     }
   }, [daily, id]);
   
@@ -128,6 +193,21 @@ const VideoComponent = ({ id, name }: { id: string; name: string }) => {
       <div className="absolute top-3 left-3 bg-black/50 text-white px-3 py-1 text-xs rounded-full backdrop-blur-sm">
         {name}
       </div>
+      
+      {videoError && (
+        <div className="absolute bottom-3 left-0 right-0 mx-auto text-center">
+          <div className="inline-flex items-center gap-2 bg-black/70 text-white px-4 py-2 rounded-full text-sm backdrop-blur-sm">
+            <span>Video {videoError}</span>
+            <button 
+              onClick={retryVideoConnection}
+              className="bg-pink-500 hover:bg-pink-600 rounded-full p-1 transition-colors"
+              title="Retry video connection"
+            >
+              <RefreshCw size={14} className={retryCount > 0 ? "animate-spin" : ""} />
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
@@ -1593,6 +1673,34 @@ const SimliAgent: React.FC<SimliAgentProps> = ({
     }
   };
 
+  // Function to reset and restart the Simli session
+  const resetSimliSession = async () => {
+    try {
+      setIsLoading(true);
+      
+      // First clean up existing session
+      if (callObject || myCallObjRef.current) {
+        addDebugInfo("Cleaning up existing Simli session before restart");
+        await cleanupExistingDaily();
+      }
+      
+      // Reset states
+      setChatbotId(null);
+      setError(null);
+      
+      // Start new session
+      addDebugInfo("Restarting Simli session...");
+      await handleJoinRoom();
+      
+      addDebugInfo("Simli session restarted successfully");
+    } catch (err) {
+      console.error("Error resetting Simli session:", err);
+      setError(`Failed to restart session: ${err instanceof Error ? err.message : String(err)}`);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <div className="flex flex-col w-full max-w-4xl mx-auto">
       {!isAvatarVisible ? (
@@ -1680,6 +1788,18 @@ const SimliAgent: React.FC<SimliAgentProps> = ({
                   title={isAudioMuted ? "Unmute Speaker" : "Mute Speaker"}
                 >
                   {isAudioMuted ? <VolumeX size={18} /> : <Volume2 size={18} />}
+                </button>
+
+                <button
+                  onClick={resetSimliSession}
+                  disabled={isLoading}
+                  className={cn(
+                    "flex items-center justify-center h-10 w-10 rounded-full transition-all duration-200",
+                    isLoading ? "bg-gray-200 text-gray-400 cursor-not-allowed" : "bg-pink-100 text-pink-700 hover:bg-pink-200"
+                  )}
+                  title="Reset Avatar Connection"
+                >
+                  <RefreshCw size={18} className={isLoading ? "animate-spin" : ""} />
                 </button>
               </div>
             </div>
