@@ -17,9 +17,9 @@ export function ScrollingInfographic() {
 
   const stats = [
     {
-      title: "Active Users",
-      value: "10k+",
-      description: "Growing user base across industries",
+      title: "Industry Reach",
+      value: "+20",
+      description: "Driving change across healthcare, finance, retail, and more",
       icon: <Users className="h-5 w-5 text-blue-500" />,
       color: "bg-blue-500",
     },
@@ -31,9 +31,9 @@ export function ScrollingInfographic() {
       color: "bg-green-500",
     },
     {
-      title: "Time Saved",
-      value: "12hrs",
-      description: "Average weekly time saved per team",
+      title: "Ad Recall Rate",
+      value: "74%",
+      description: "Users remember personalizedbranded messages more effectively",
       icon: <Clock className="h-5 w-5 text-amber-500" />,
       color: "bg-amber-500",
     },

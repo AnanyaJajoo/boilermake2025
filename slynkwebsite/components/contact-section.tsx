@@ -38,11 +38,7 @@ export function ContactSection() {
               <div className="space-y-4">
                 <div className="flex items-center gap-3">
                   <Mail className="h-5 w-5 text-pink-500" />
-                  <span className="text-gray-700">hello@voxen.com</span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <Phone className="h-5 w-5 text-pink-500" />
-                  <span className="text-gray-700">+1 (555) 123-4567</span>
+                  <span className="text-gray-700">slynkinfo@gmail.com</span>
                 </div>
                 <div className="flex items-center gap-3">
                   <MapPin className="h-5 w-5 text-pink-500" />

@@ -20,13 +20,12 @@ export function StorySection() {
 
   const timelineItems = [
     {
-      year: "2020",
+      year: "February 2025",
       title: "The Beginning",
-      description: "Founded by a team passionate about storytelling and technology.",
+      description: "Slynk was founded by a team of entrepreneurs who are passionate about creating meaningful connections between brands and consumers.",
     },
-    { year: "2021", title: "First Prototype", description: "Developed our first AI-driven virtual spokesperson." },
-    { year: "2022", title: "Market Launch", description: "Released our platform to select partners." },
-    { year: "2023", title: "Global Expansion", description: "Expanded our services worldwide." },
+    { year: "March 2025", title: "First Prototype", description: "Developed our app more and continued to work on the platform." },
+    { year: "April 2025", title: "Launch", description: "Expanded our services and launched the platform to the public." },
   ]
 
   return (

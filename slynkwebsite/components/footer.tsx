@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { Facebook, Twitter, Instagram, Linkedin } from "lucide-react"
+import { Twitter, Instagram, Linkedin } from "lucide-react"
 
 export function Footer() {
   return (
@@ -7,21 +7,34 @@ export function Footer() {
       <div className="max-w-6xl mx-auto">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div>
-            <h3 className="font-bold text-lg mb-4 text-gray-900">Voxen</h3>
+            <h3 className="font-bold text-lg mb-4 text-gray-900">slynk</h3>
             <p className="text-gray-600 mb-4">
               Transform static advertisements into engaging, conversational experiences with AI-driven avatars.
             </p>
             <div className="flex gap-4">
-              <Link href="#" className="text-gray-400 hover:text-pink-500 transition-colors">
-                <Facebook className="h-5 w-5" />
-              </Link>
-              <Link href="#" className="text-gray-400 hover:text-pink-500 transition-colors">
+              <Link 
+                href="https://x.com/InfoSlynk" 
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-gray-400 hover:text-pink-500 transition-colors"
+                aria-label="Follow us on X (formerly Twitter)"
+              >
                 <Twitter className="h-5 w-5" />
               </Link>
-              <Link href="#" className="text-gray-400 hover:text-pink-500 transition-colors">
+              <Link href="https://www.instagram.com/infoslynk/" 
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-gray-400 hover:text-pink-500 transition-colors"
+                aria-label="Follow us on Instagram"
+              >
                 <Instagram className="h-5 w-5" />
               </Link>
-              <Link href="#" className="text-gray-400 hover:text-pink-500 transition-colors">
+              <Link href="https://www.linkedin.com/company/infoslynk?trk=public_post_feed-actor-name" 
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-gray-400 hover:text-pink-500 transition-colors"
+                aria-label="Follow us on LinkedIn"
+              >
                 <Linkedin className="h-5 w-5" />
               </Link>
             </div>
@@ -33,16 +46,6 @@ export function Footer() {
               <li>
                 <Link href="#" className="text-gray-600 hover:text-pink-500 transition-colors">
                   About Us
-                </Link>
-              </li>
-              <li>
-                <Link href="#" className="text-gray-600 hover:text-pink-500 transition-colors">
-                  Careers
-                </Link>
-              </li>
-              <li>
-                <Link href="#" className="text-gray-600 hover:text-pink-500 transition-colors">
-                  Blog
                 </Link>
               </li>
               <li>
@@ -107,7 +110,7 @@ export function Footer() {
         </div>
 
         <div className="mt-12 pt-8 border-t border-gray-100 text-center text-gray-600">
-          <p>&copy; {new Date().getFullYear()} Voxen. All rights reserved.</p>
+          <p>&copy; {new Date().getFullYear()} slynk. All rights reserved.</p>
         </div>
       </div>
     </footer>

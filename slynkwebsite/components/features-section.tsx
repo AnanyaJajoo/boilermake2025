@@ -5,6 +5,7 @@ import { useInView } from "react-intersection-observer"
 import { useEffect, useState } from "react"
 import { motion } from "framer-motion"
 import { AnimatedIcon } from "@/components/animated-icon"
+import Link from "next/link"
 
 export function FeaturesSection() {
   const [isVisible, setIsVisible] = useState(false)
@@ -130,8 +131,11 @@ export function FeaturesSection() {
                     transition={{ type: "spring", stiffness: 400 }}
                   >
                     {feature.align === "right" && <ArrowRight size={14} />}
-                    <span>Learn more</span>
-                    {feature.align === "left" && <ArrowRight size={14} />}
+                    <Link href="/customers" className="flex items-center gap-1.5">
+                      <span>Learn more</span>
+                      {feature.align === "left" && <ArrowRight size={14} />}
+                    </Link>
+                    {feature.align === "right" && <ArrowRight size={14} />}
                   </motion.div>
                 </div>
               </div>

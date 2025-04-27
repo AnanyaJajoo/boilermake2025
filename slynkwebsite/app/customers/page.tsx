@@ -12,6 +12,7 @@ import { PersistentSignInButton } from "@/components/persistent-sign-in-button"
 import { AnimatedGradientBackground } from "@/components/animated-gradient-background"
 import { ScrollingInfographic } from "@/components/scrolling-infographic"
 import { AnimatedStats } from "@/components/animated-stats"
+import Link from "next/link"
 
 export default function CustomersPage() {
   const [showNavbar, setShowNavbar] = useState(false)
@@ -42,10 +43,10 @@ export default function CustomersPage() {
       <AnimatedStats />
 
       {/* Case Studies */}
-      <CaseStudiesSection />
+      {/*<CaseStudiesSection />*/}
 
       {/* Testimonials */}
-      <TestimonialsSection />
+      {/*<TestimonialsSection />*/}
 
       <Footer />
       <PersistentSignInButton onSignInClick={() => setIsSignInOpen(true)} />
@@ -77,19 +78,21 @@ function HeroSection() {
             Transform Your <span className="text-pink-500">Customer Experience</span>
           </h1>
           <p className="mx-auto mb-10 max-w-2xl text-xl text-gray-600">
-            See how businesses are using Voxen to create meaningful connections with their audience through AI-powered
+            See how businesses are using slynk to create meaningful connections with their audience through AI-powered
             virtual spokespersons.
           </p>
 
           <div className="flex flex-wrap justify-center gap-4">
-            <motion.div
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="flex items-center gap-2 rounded-full bg-gradient-to-r from-pink-400 to-pink-600 px-6 py-3 font-medium text-white shadow-md transition-all hover:shadow-lg"
-            >
-              Get Started
-              <ArrowRight size={16} />
-            </motion.div>
+            <Link href="/create">
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="flex items-center gap-2 rounded-full bg-gradient-to-r from-pink-400 to-pink-600 px-6 py-3 font-medium text-white shadow-md transition-all hover:shadow-lg"
+              >
+                Get Started
+                <ArrowRight size={16} />
+              </motion.div>
+            </Link>
           </div>
         </motion.div>
       </div>
@@ -180,7 +183,12 @@ function ProcessSection() {
   )
 }
 
-function ProcessStep({ step, index, inView, isLast }) {
+function ProcessStep({ step, index, inView, isLast }: {
+  step: any;
+  index: number;
+  inView: boolean;
+  isLast: boolean;
+}) {
   const isEven = index % 2 === 0
   const delay = 0.2 + index * 0.2
 
@@ -226,7 +234,7 @@ function ProcessStep({ step, index, inView, isLast }) {
     </div>
   )
 }
-
+{/*
 function CaseStudiesSection() {
   const [ref, inView] = useInView({
     triggerOnce: true,
@@ -238,36 +246,13 @@ function CaseStudiesSection() {
       company: "TechCorp",
       title: "Increasing Engagement by 300%",
       description:
-        "TechCorp used Voxen to create an interactive product specialist that helped customers find the right solutions.",
+        "TechCorp used slynk to create an interactive product specialist that helped customers find the right solutions.",
       stats: [
         { label: "Engagement", value: "+300%" },
         { label: "Conversion", value: "+45%" },
         { label: "Support Tickets", value: "-60%" },
       ],
       gradient: "from-blue-400 to-blue-600",
-    },
-    {
-      company: "Fashion Forward",
-      title: "Personalized Shopping Experience",
-      description:
-        "Fashion Forward created a virtual stylist that provided personalized recommendations to online shoppers.",
-      stats: [
-        { label: "Avg. Order Value", value: "+28%" },
-        { label: "Return Rate", value: "-35%" },
-        { label: "Customer Satisfaction", value: "+87%" },
-      ],
-      gradient: "from-purple-400 to-purple-600",
-    },
-    {
-      company: "EduLearn",
-      title: "24/7 Learning Assistant",
-      description: "EduLearn implemented an AI tutor that provided round-the-clock assistance to students.",
-      stats: [
-        { label: "Course Completion", value: "+52%" },
-        { label: "Student Satisfaction", value: "+91%" },
-        { label: "Questions Answered", value: "10k+" },
-      ],
-      gradient: "from-pink-400 to-pink-600",
     },
   ]
 
@@ -309,7 +294,7 @@ function CaseStudiesSection() {
               <div className="p-6">
                 <p className="mb-6 text-gray-600">{study.description}</p>
                 <div className="grid grid-cols-3 gap-4">
-                  {study.stats.map((stat) => (
+                  {study.stats?.map((stat) => (
                     <div key={stat.label} className="text-center">
                       <p
                         className={`text-xl font-bold bg-gradient-to-r ${study.gradient} bg-clip-text text-transparent`}
@@ -328,7 +313,8 @@ function CaseStudiesSection() {
     </section>
   )
 }
-
+  */}
+{/*
 function TestimonialsSection() {
   const [ref, inView] = useInView({
     triggerOnce: true,
@@ -408,3 +394,4 @@ function TestimonialsSection() {
     </section>
   )
 }
+*/}
