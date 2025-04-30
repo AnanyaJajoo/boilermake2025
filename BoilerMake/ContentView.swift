@@ -368,38 +368,38 @@ struct CircleMenuItem: View {
 struct ARViewContainer: UIViewRepresentable {
     func makeUIView(context: Context) -> ARView {
         let arView = ARView(frame: .zero)
+        arView.session.delegate = context.coordinator
         
-        // Configure AR session for image tracking
+        // Configure AR session
         let config = ARWorldTrackingConfiguration()
         
-        // Create reference image programmatically
-        let referenceImage2 = createReferenceImage2()
-        if let referenceImage = createReferenceImage() {
-            config.detectionImages = Set([referenceImage, referenceImage2!])
-            config.maximumNumberOfTrackedImages = 1
-            print("✅ Reference images created successfully")
-        } else {
-            print("❌ Failed to create reference image")
+        // Set up image tracking
+        var referenceImages = Set<ARReferenceImage>()
+        if let freakbobImage = context.coordinator.createReferenceImage() {
+            referenceImages.insert(freakbobImage)
+        }
+        if let bobImage = context.coordinator.createReferenceImage2() {
+            referenceImages.insert(bobImage)
         }
         
-        // Debug tracking quality
-        // arView.debugOptions = [.showWorldOrigin, .showFeaturePoints]
+        config.detectionImages = referenceImages
+        config.maximumNumberOfTrackedImages = 2
         
-        arView.session.run(config)
-        arView.session.delegate = context.coordinator
-        context.coordinator.arView = arView
-        context.coordinator.preloadTexture()
-        context.coordinator.preloadTexture2()
-        context.coordinator.preloadTextureL()
-        context.coordinator.preloadTextureC()
+        // Enable other tracking features
+        config.planeDetection = [.horizontal, .vertical]
+        config.environmentTexturing = .automatic
         
-        // Add tap gesture recognizer for image anchors
-        let tapGesture = UILongPressGestureRecognizer(target: context.coordinator, action: #selector(Coordinator.handleLongPress(_:)))
-        tapGesture.minimumPressDuration = 0.01 // Make it react quickly to begin tracking long press
+        arView.session.run(config, options: [.resetTracking, .removeExistingAnchors])
+        
+        // Set up gesture recognizers
+        let tapGesture = UITapGestureRecognizer(target: context.coordinator, action: #selector(Coordinator.handleTap(_:)))
         arView.addGestureRecognizer(tapGesture)
         
-        // Add tap gesture recognizer for Simli agents
+        let longPressGesture = UILongPressGestureRecognizer(target: context.coordinator, action: #selector(Coordinator.handleLongPress(_:)))
+        arView.addGestureRecognizer(longPressGesture)
+        
         let simliTapGesture = UITapGestureRecognizer(target: context.coordinator, action: #selector(Coordinator.handleSimliTap(_:)))
+        simliTapGesture.numberOfTapsRequired = 1
         arView.addGestureRecognizer(simliTapGesture)
         
         return arView
@@ -1253,82 +1253,129 @@ struct ARViewContainer: UIViewRepresentable {
         }
         
         @objc func handleLongPress(_ gesture: UILongPressGestureRecognizer) {
-            guard let arView = arView else { return }
+            guard gesture.state == .began else { return }
+            guard let arView = gesture.view as? ARView else { return }
             
-            switch gesture.state {
-            case .began:
-                // User started pressing
-                longPressStartTime = Date()
-                longPressLocation = gesture.location(in: arView)
-                detectedObject = nil
-                
-                // Try to detect an object at the touch location
-                if let imageAnchor = findImageAnchorInView(at: longPressLocation!) {
-                    detectedObject = imageAnchor.name
-                    showBoundingBox(atLocation: longPressLocation!, forObject: detectedObject!)
-                    startHoldTimer()
-                }
-                
-            case .changed:
-                // Update the loading indicator position if user moves finger slightly
-                if let location = longPressLocation, let object = detectedObject {
-                    let newLocation = gesture.location(in: arView)
-                    // Only update if the movement is significant but not too large (to avoid losing the object)
-                    let distance = hypot(newLocation.x - location.x, newLocation.y - location.y)
-                    if distance < 50 { // Allow small movements without canceling
-                        updateBoundingBoxPosition(newLocation)
-                    } else {
-                        // Cancel if movement too large
-                        cancelHoldGesture()
-                    }
-                }
-                
-            case .ended, .cancelled, .failed:
-                // User stopped pressing before completion
-                cancelHoldGesture()
-                
-            default:
-                break
+            // Handle long press for additional interactions
+            let location = gesture.location(in: arView)
+            if let entity = arView.entity(at: location) {
+                // Interact with existing entity
+                entity.transform.scale *= 1.1
             }
         }
         
         @objc func handleSimliTap(_ gesture: UITapGestureRecognizer) {
-            // Check if gesture is in the correct state
-            if gesture.state == .ended {
-                // Use the SimliARExtension method to handle the tap
-                handleTapForSimliAgent(gesture)
+            guard let arView = gesture.view as? ARView else { return }
+            let location = gesture.location(in: arView)
+            
+            if let entity = arView.entity(at: location) as? ModelEntity {
+                // Handle Simli-specific interactions
+                parent.handleSimliInteraction(entity: entity)
             }
+        }
+        
+        @objc func handleTap(_ gesture: UITapGestureRecognizer) {
+            guard let arView = gesture.view as? ARView else { return }
+            let location = gesture.location(in: arView)
+            
+            if let result = arView.raycast(from: location, allowing: .estimatedPlane, alignment: .horizontal).first {
+                // Handle tap for placing content
+                let anchor = AnchorEntity(raycastResult: result)
+                arView.scene.addAnchor(anchor)
+            }
+        }
+        
+        private func placeAnchor(at transform: simd_float4x4) {
+            let anchor = ARAnchor(transform: transform)
+            arView.session.add(anchor: anchor)
+            print("✅ Placed anchor at transform")
         }
         
         @MainActor func session(_ session: ARSession, didAdd anchors: [ARAnchor]) {
             for anchor in anchors {
-                guard let imageAnchor = anchor as? ARImageAnchor else {
-                    print("⚠️ Non-image anchor detected")
-                    continue
+                if let imageAnchor = anchor as? ARImageAnchor {
+                    print("✨ Detected image: \(imageAnchor.name ?? "unnamed")")
+                    handleImageAnchorDetection(imageAnchor)
                 }
-                
-                print("✅ Reference image detected: \(imageAnchor.name ?? "unnamed")")
-                // We don't immediately play videos now - they are triggered by the hold gesture
             }
         }
         
         @MainActor func session(_ session: ARSession, didUpdate anchors: [ARAnchor]) {
-            // This is called when anchors are updated (including tracking state changes)
-            if let currentID = currentPlayingAnchorID, isVideoPlaying {
-                // Refresh the visible state of the current playing anchor
-                let isVisible = isImageAnchorVisible(anchorID: currentID)
-                if isVisible {
-                    lastSeenTime = Date()
+            for anchor in anchors {
+                if let imageAnchor = anchor as? ARImageAnchor {
+                    updateAnchorVisibility(imageAnchor)
                 }
             }
         }
         
+        private func handleImageAnchorDetection(_ imageAnchor: ARImageAnchor) {
+            DispatchQueue.main.async {
+                self.parent.detectedImageName = imageAnchor.name ?? ""
+                self.parent.isImageDetected = true
+            }
+        }
+        
+        private func updateAnchorVisibility(_ imageAnchor: ARImageAnchor) {
+            guard let anchorID = imageAnchor.name else { return }
+            
+            let isVisible = parent.isImageAnchorVisible(anchorID: anchorID)
+            DispatchQueue.main.async {
+                if self.parent.anchorVisibility[anchorID] != isVisible {
+                    self.parent.anchorVisibility[anchorID] = isVisible
+                }
+            }
+        }
+        
+        func createReferenceImage() -> ARReferenceImage? {
+            guard let cgImage = UIImage(named: "freakbob")?.cgImage else {
+                print("❌ Failed to load freakbob image")
+                return nil
+            }
+            
+            let referenceImage = ARReferenceImage(cgImage, orientation: .up, physicalWidth: 0.1)
+            referenceImage.name = "freakbob"
+            return referenceImage
+        }
+        
+        func createReferenceImage2() -> ARReferenceImage? {
+            guard let cgImage = UIImage(named: "bob")?.cgImage else {
+                print("❌ Failed to load bob image")
+                return nil
+            }
+            
+            let referenceImage = ARReferenceImage(cgImage, orientation: .up, physicalWidth: 0.1)
+            referenceImage.name = "bob"
+            return referenceImage
+        }
+        
+        @MainActor func session(_ session: ARSession, didUpdateFrame frame: ARFrame) {
+            // Process the frame then explicitly release it
+            // Your frame processing logic here
+            frame.capturedImage.texture = nil
+        }
+        
         func session(_ session: ARSession, didFailWithError error: Error) {
             print("❌ AR Session failed: \(error)")
+            // Clean up resources on failure
+            cleanupAR()
         }
         
         func session(_ session: ARSession, cameraDidChangeTrackingState camera: ARCamera) {
             print("📱 Camera tracking state: \(camera.trackingState)")
+            
+            // If tracking becomes limited, try to recover
+            if case .limited(let reason) = camera.trackingState {
+                switch reason {
+                case .insufficientFeatures:
+                    print("⚠️ Limited tracking: insufficient features")
+                    // Consider providing user feedback to move to a more feature-rich area
+                case .excessiveMotion:
+                    print("⚠️ Limited tracking: excessive motion")
+                    // Consider providing user feedback to move the device more slowly
+                default:
+                    break
+                }
+            }
         }
     }
 }
