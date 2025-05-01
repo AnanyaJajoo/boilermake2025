@@ -7,7 +7,7 @@ export function Footer() {
       <div className="max-w-6xl mx-auto">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div>
-            <h3 className="font-bold text-lg mb-4 text-gray-900">Voxen</h3>
+            <h3 className="font-bold text-lg mb-4 text-gray-900">Slynk</h3>
             <p className="text-gray-600 mb-4">
               Transform static advertisements into engaging, conversational experiences with AI-driven avatars.
             </p>
@@ -107,7 +107,7 @@ export function Footer() {
         </div>
 
         <div className="mt-12 pt-8 border-t border-gray-100 text-center text-gray-600">
-          <p>&copy; {new Date().getFullYear()} Voxen. All rights reserved.</p>
+          <p>&copy; {new Date().getFullYear()} Slynk. All rights reserved.</p>
         </div>
       </div>
     </footer>
