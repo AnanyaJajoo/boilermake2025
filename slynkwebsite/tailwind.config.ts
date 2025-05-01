@@ -105,6 +105,10 @@ const config: Config = {
         'pulse-slow': {
           '0%, 100%': { opacity: '0.7' },
           '50%': { opacity: '0.4' }
+        },
+        'smooth-appear': {
+          '0%': { opacity: '0', transform: 'scale(0.95)' },
+          '100%': { opacity: '1', transform: 'scale(1)' }
         }
   		},
   		animation: {
@@ -112,7 +116,8 @@ const config: Config = {
   			'accordion-up': 'accordion-up 0.2s ease-out',
   			fadeIn: 'fadeIn 0.3s ease-out forwards',
         'border-flow': 'border-flow 5s ease infinite',
-        'pulse-slow': 'pulse-slow 3s cubic-bezier(0.4, 0, 0.6, 1) infinite'
+        'pulse-slow': 'pulse-slow 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+        'smooth-appear': 'smooth-appear 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards'
   		}
   	}
   },

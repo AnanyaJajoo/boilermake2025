@@ -80,6 +80,18 @@ export async function POST(req: NextRequest) {
     
     // Get JSON data
     const data = await req.json();
+    
+    // Check if faceId is a UUID (character_uid format)
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(data.faceId);
+    const isCustomFaceInQueue = data.isCustomFaceInQueue || isUuid;
+    
+    // Create metadata object for storing face information
+    const metadata: any = {};
+    if (isCustomFaceInQueue) {
+      metadata.originalCharacterId = data.faceId;
+      metadata.customFaceInProgress = true;
+      metadata.queuedAt = new Date().toISOString();
+    }
 
     // First create the AI persona in our database
     const persona = await prisma.aIPersona.create({
@@ -88,12 +100,10 @@ export async function POST(req: NextRequest) {
         description: data.description,
         systemPrompt: data.systemPrompt,
         firstMessage: data.firstMessage,
-        faceId: data.faceId || "tmp9i8bbq7c", // Default face ID as fallback
-        isCustomFaceInQueue: data.isCustomFaceInQueue || false,
-        metadata: data.originalCharacterId ? {
-          originalCharacterId: data.originalCharacterId,
-          customFaceInProgress: true
-        } : undefined,
+        // Store the original faceId (character_uid for queued faces)
+        faceId: data.faceId,
+        isCustomFaceInQueue: isCustomFaceInQueue,
+        metadata: Object.keys(metadata).length > 0 ? metadata : undefined,
         userId,
       },
     });
@@ -103,7 +113,7 @@ export async function POST(req: NextRequest) {
       try {
         // Create the agent in Simli using improved agent creation function
         const simliAgent = await createSimliAgent({
-          faceId: data.faceId || "tmp9i8bbq7c",
+          faceId: data.faceId, // Pass the original faceId - our function will handle the UUID case
           name: data.name,
           firstMessage: data.firstMessage,
           prompt: data.systemPrompt,
@@ -112,15 +122,18 @@ export async function POST(req: NextRequest) {
           language: "en" // Default to English
         });
 
-        // Update our persona record with the Simli agent ID
+        // Update our persona record with the Simli agent ID and additional metadata
         await prisma.aIPersona.update({
           where: { id: persona.id },
           data: { 
             simliAgentId: simliAgent.id,
-            // Store additional metadata if needed
+            // Merge existing metadata with agent details
             metadata: {
+              ...metadata,
               simliAgentCreated: true,
-              simliAgentDetails: JSON.stringify(simliAgent)
+              simliAgentDetails: JSON.stringify(simliAgent),
+              // Store the originalCharacterId from the agent if it exists
+              originalCharacterId: simliAgent.originalCharacterId || metadata.originalCharacterId
             }
           }
         });

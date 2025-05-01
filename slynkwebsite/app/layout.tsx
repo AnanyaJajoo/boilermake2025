@@ -7,8 +7,8 @@ import { Providers } from "./providers"
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata = {
-  title: "Slynk",
-  description: "Reinventing Ads with Live Interaction",
+  title: "slynk",
+  description: "reinventing ads with live interaction",
   icons: {
     icon: [
       { url: "/slynkicon.svg", type: "image/x-icon" },

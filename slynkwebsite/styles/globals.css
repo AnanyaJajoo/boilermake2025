@@ -12,6 +12,30 @@ body {
   }
 }
 
+/* Framer-inspired custom styles */
+@layer components {
+  .framer-card {
+    @apply bg-white rounded-3xl shadow-lg transition-all duration-300;
+    box-shadow: 0 20px 60px -15px rgba(0,0,0,0.08);
+  }
+  
+  .framer-input {
+    @apply p-3 text-base border-0 focus:ring-1 focus:ring-indigo-400 transition-all rounded-xl shadow-sm bg-gray-50;
+  }
+  
+  .framer-select-content {
+    @apply bg-white border-0 shadow-lg rounded-xl overflow-hidden;
+  }
+  
+  .framer-button-primary {
+    @apply rounded-full font-medium transition-all duration-300 bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-lg hover:shadow-xl;
+  }
+  
+  .framer-button-outline {
+    @apply rounded-full border border-gray-200 hover:bg-gray-50 transition-all duration-300 text-gray-700;
+  }
+}
+
 @layer base {
   :root {
     --background: 0 0% 100%;
