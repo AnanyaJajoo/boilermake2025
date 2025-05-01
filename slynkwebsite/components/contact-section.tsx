@@ -83,7 +83,7 @@ export function ContactSection() {
                 </div>
                 <div className="flex items-center gap-3">
                   <MapPin className="h-5 w-5 text-pink-500" />
-                  <span className="text-gray-700">123 Innovation Drive, San Francisco, CA</span>
+                  <span className="text-gray-700">Hello Innovation Drive, San Francisco, CA</span>
                 </div>
                 */}
               </div>
