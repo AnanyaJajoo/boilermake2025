@@ -77,7 +77,7 @@ struct ContentView: View {
                         }
                     }
                 }
-                .navigationTitle("Main App")
+                .navigationTitle("slynk")
                 .navigationBarTitleDisplayMode(.inline)
                 .toolbar {
                     ToolbarItem(placement: .navigationBarTrailing) {
@@ -227,7 +227,7 @@ struct Setting: View {
 
 struct GridView: View {
     let images = [
-        ("lebronboy", "Lakers Tickets", "The Los Angeles Lakers are a historic NBA team with 17 championships. LeBron James, a four-time NBA champion, joined the team in 2018 and led them to the 2020 title, further cementing his legacy as one of the greatest players of all time."),
+        ("minecraft_movie", "Minecraft Tickets", "The Minecraft movie brings the game's iconic blocky universe to life, following a group of heroes as they fight to save their world from destruction, capturing the spirit that made Minecraft a global phenomenon. \n https://www.amctheatres.com/movies/a-minecraft-movie-46029"),
         ("chanel", "Chanel No. 5", "Chanel No. 5 has a luxurious, powdery floral scent with notes of jasmine, rose, and ylang-ylang, enhanced by aldehydes for a soft, airy feel, and a warm, woody vanilla base.")
     ];  // Image names, labels, and descriptions
 
@@ -292,8 +292,8 @@ struct DetailView: View {
                 .padding()
                 .multilineTextAlignment(.center)
             
-            if label == "Chanel No. 5" {
-                            Link("Visit the Chanel website", destination: URL(string: "https://www.chanel.com/us/fragrance/women/c/7x1x1x30/n5/")!)
+            if label == "Minecraft Tickets" {
+                            Link("Buy Movie Tickets Now", destination: URL(string: "https://www.amctheatres.com/movies/a-minecraft-movie-46029")!)
                                 .font(.body)
                                 .padding()
                                 .foregroundColor(.blue)
@@ -362,9 +362,10 @@ struct ARViewContainer: UIViewRepresentable {
         let config = ARWorldTrackingConfiguration()
         
         // Create reference image programmatically
-        let referenceImage2 = createReferenceImage2()
-        if let referenceImage = createReferenceImage() {
-            config.detectionImages = Set([referenceImage, referenceImage2!])
+        // let referenceImage2 = createReferenceImage2()
+        // let referenceImageMinecraft = createReferenceImageMinecraft()
+        if let referenceImageMinecraft = createReferenceImageMinecraft() {
+            config.detectionImages = Set([referenceImageMinecraft])
             config.maximumNumberOfTrackedImages = 1
             print("✅ Reference images created successfully")
         } else {
@@ -381,6 +382,8 @@ struct ARViewContainer: UIViewRepresentable {
         context.coordinator.preloadTexture2()
         context.coordinator.preloadTextureL()
         context.coordinator.preloadTextureC()
+        context.coordinator.preloadTextureMinecraft()
+        context.coordinator.preloadTextureM()
         
         // Add tap gesture recognizer
         let tapGesture = UILongPressGestureRecognizer(target: context.coordinator, action: #selector(Coordinator.handleLongPress(_:)))
@@ -434,6 +437,21 @@ struct ARViewContainer: UIViewRepresentable {
         return referenceImage
     }
     
+    func createReferenceImageMinecraft() -> ARReferenceImage? {
+        // Use the image you want to detect
+        guard let image = UIImage(named: "minecraft_movie")?.cgImage else {
+            print("❌ Failed to load target image")
+            return nil
+        }
+        
+        // Set the physical size of the image in meters (adjust as needed)
+        let physicalWidth = 0.8  // 20cm wide
+        let referenceImage = ARReferenceImage(image, orientation: .up, physicalWidth: physicalWidth)
+        referenceImage.name = "minecraft_movie"
+        
+        return referenceImage
+    }
+    
     class Coordinator: NSObject, ARSessionDelegate {
         weak var arView: ARView?
         var cachedTexture: TextureResource?
@@ -441,6 +459,8 @@ struct ARViewContainer: UIViewRepresentable {
         var player2: AVPlayer?
         var playerL: AVPlayer?
         var playerC: AVPlayer?
+        var playerMinecraft: AVPlayer?
+        var playerM: AVPlayer?
         var anchors: [UUID: AnchorEntity] = [:]
         @State var speechRecognizer = SpeechRecognizer()
         
@@ -559,6 +579,50 @@ struct ARViewContainer: UIViewRepresentable {
             }
         }
         
+        func preloadTextureMinecraft() {
+            Task {
+                do {
+                    print("🔄 Preloading overlay texture for minecraft movie...")
+                    let videoURL = Bundle.main.url(forResource: "minecraft_movie_0", withExtension: "mp4")
+                    
+                    do {
+                        try AVAudioSession.sharedInstance().setCategory(.playback, mode: .default)
+                        try AVAudioSession.sharedInstance().setActive(true)
+                    } catch {
+                        print("Audio session setup failed: \(error)")
+                    }
+                    print("✅ Minecraft movie overlay texture preloaded successfully")
+                    
+                    playerMinecraft = AVPlayer(url: videoURL!)
+                    playerMinecraft?.isMuted = false
+                } catch {
+                    print("❌ Failed to preload minecraft movie overlay texture: \(error)")
+                }
+            }
+        }
+        
+        func preloadTextureM() {
+            Task {
+                do {
+                    print("🔄 Preloading overlay texture 'minecraft_movie_1'...")
+                    let videoURL = Bundle.main.url(forResource: "minecraft_movie_1", withExtension: "mp4")
+                    
+
+                    do {
+                            try AVAudioSession.sharedInstance().setCategory(.playback, mode: .default)
+                            try AVAudioSession.sharedInstance().setActive(true)
+                            } catch {
+                                print("Audio session setup failed: \(error)")
+                            }
+                    print("✅ Overlay texture minecraft_movie_1 preloaded successfully")
+                    
+                    playerM = AVPlayer(url: videoURL!)
+                    playerM?.isMuted = false
+                } catch {
+                    print("❌ Failed to preload overlay texture minecraft_movie_1: \(error)")
+                }
+            }
+        }
         
         private func startOutOfFrameTracking() {
             // Cancel any existing timer
@@ -616,7 +680,7 @@ struct ARViewContainer: UIViewRepresentable {
         }
         
         private func findImageAnchorInView(at point: CGPoint) -> ARImageAnchor? {
-            guard let arView = arView, 
+            guard let arView = arView,
                   let frame = arView.session.currentFrame else { return nil }
             
             // First try a direct hit test on image anchors
@@ -836,6 +900,14 @@ struct ARViewContainer: UIViewRepresentable {
             playerC?.replaceCurrentItem(with: nil)
             playerC = nil
             
+            playerMinecraft?.pause()
+            playerMinecraft?.replaceCurrentItem(with: nil)
+            playerMinecraft = nil
+            
+            playerM?.pause()
+            playerM?.replaceCurrentItem(with: nil)
+            playerM = nil
+            
             // Remove observers to prevent memory leaks
             NotificationCenter.default.removeObserver(self)
             
@@ -879,10 +951,12 @@ struct ARViewContainer: UIViewRepresentable {
             }
             
             // Preload video players to be ready for next detection
-            preloadTexture()
-            preloadTexture2()
-            preloadTextureL()
-            preloadTextureC()
+            // preloadTexture()
+            // preloadTexture2()
+            // preloadTextureL()
+            // preloadTextureC()
+            // preloadTextureMinecraft()
+            // preloadTextureM()
             
             print("AR cleanup complete")
         }
@@ -946,7 +1020,7 @@ struct ARViewContainer: UIViewRepresentable {
                         }
                         timer.invalidate()
                         
-                        // Print final transcript 
+                        // Print final transcript
                         print("USER RESPONSE: \(currentTranscript)")
                         
                         // Properly configure audio session for video playback
@@ -1000,8 +1074,8 @@ struct ARViewContainer: UIViewRepresentable {
                                     print("Now playing Lebron follow-up video with volume: \(self.playerL!.volume)")
                                     
                                     // Start final speech recognition after second video finishes
-                                    NotificationCenter.default.addObserver(forName: .AVPlayerItemDidPlayToEndTime, 
-                                                                          object: self.playerL!.currentItem, 
+                                    NotificationCenter.default.addObserver(forName: .AVPlayerItemDidPlayToEndTime,
+                                                                          object: self.playerL!.currentItem,
                                                                           queue: .main) { [weak self] _ in
                                         print("Second Lebron video finished - Starting final transcription")
                                         guard let self = self else { return }
@@ -1009,7 +1083,7 @@ struct ARViewContainer: UIViewRepresentable {
                                     }
                                 }
                             }
-                        } else { // chanel
+                        } else if videoType == "chanel" {
                             // Pause first player
                             self.player2?.pause()
                             
@@ -1049,10 +1123,53 @@ struct ARViewContainer: UIViewRepresentable {
                                     print("Now playing Chanel follow-up video with volume: \(self.playerC!.volume)")
                                     
                                     // Start final speech recognition after second video finishes
-                                    NotificationCenter.default.addObserver(forName: .AVPlayerItemDidPlayToEndTime, 
-                                                                          object: self.playerC!.currentItem, 
+                                    NotificationCenter.default.addObserver(forName: .AVPlayerItemDidPlayToEndTime,
+                                                                          object: self.playerC!.currentItem,
                                                                           queue: .main) { [weak self] _ in
                                         print("Second Chanel video finished - Starting final transcription")
+                                        guard let self = self else { return }
+                                        self.startFinalSpeechRecognition()
+                                    }
+                                }
+                            }
+                        } else if videoType == "minecraft_movie" {
+                            // Pause first player
+                            self.playerMinecraft?.pause()
+                            
+                            if let videoURL2 = Bundle.main.url(forResource: "minecraft_movie_1", withExtension: "mp4") {
+                                self.playerM = AVPlayer(url: videoURL2)
+                                self.playerM?.volume = 1.0
+                                self.playerM?.isMuted = false
+                                
+                                var videoMaterial = VideoMaterial(avPlayer: self.playerM!)
+                                imageEntity.model?.materials = [videoMaterial]
+                                print("Playing next minecraft video")
+                                
+                                Task { @MainActor in
+                                    // Ensure player has proper audio settings
+                                    self.playerM!.isMuted = false
+                                    self.playerM!.volume = 1.0
+                                    
+                                    // Configure audio session inside the task with better error handling
+                                    do {
+                                        try? AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
+                                        usleep(10000) // 10ms delay
+                                        try AVAudioSession.sharedInstance().setCategory(.playback, mode: .default)
+                                        try AVAudioSession.sharedInstance().setActive(true)
+                                        print("Audio configured successfully for Minecraft follow-up")
+                                    } catch {
+                                        print("Audio config warning for Minecraft (non-critical): \(error.localizedDescription)")
+                                    }
+                                    
+                                    self.playerM!.seek(to: .zero)
+                                    self.playerM!.play()
+                                    print("Now playing Minecraft follow-up video with volume: \(self.playerM!.volume)")
+                                    
+                                    // Start final speech recognition after second video finishes
+                                    NotificationCenter.default.addObserver(forName: .AVPlayerItemDidPlayToEndTime,
+                                                                          object: self.playerM!.currentItem,
+                                                                          queue: .main) { [weak self] _ in
+                                        print("Second Minecraft video finished - Starting final transcription")
                                         guard let self = self else { return }
                                         self.startFinalSpeechRecognition()
                                     }
@@ -1130,8 +1247,8 @@ struct ARViewContainer: UIViewRepresentable {
             
             // Find the corresponding image anchor
             guard let arView = arView,
-                  let imageAnchor = arView.session.currentFrame?.anchors.first(where: { 
-                      ($0 as? ARImageAnchor)?.name == objectName 
+                  let imageAnchor = arView.session.currentFrame?.anchors.first(where: {
+                      ($0 as? ARImageAnchor)?.name == objectName
                   }) as? ARImageAnchor else {
                 isVideoPlaying = false
                 return
@@ -1186,15 +1303,37 @@ struct ARViewContainer: UIViewRepresentable {
                     player!.play()
                     
                     // Set up a notification to detect when the first video finishes
-                    NotificationCenter.default.addObserver(forName: .AVPlayerItemDidPlayToEndTime, 
-                                                          object: player!.currentItem, 
+                    NotificationCenter.default.addObserver(forName: .AVPlayerItemDidPlayToEndTime,
+                                                          object: player!.currentItem,
                                                           queue: .main) { [weak self] _ in
                         print("First Lebron video finished playing naturally")
                         guard let self = self else { return }
                         
                         // Start speech recognition after the first video
-                        self.waitForUserResponseThenPlayNextVideo(imageEntity: imageEntity, 
+                        self.waitForUserResponseThenPlayNextVideo(imageEntity: imageEntity,
                                                                 videoType: "lebron")
+                    }
+                }
+            }  else if objectName == "minecraft_movie" {
+                print("Minecraft Movie Detected")
+                
+                if let videoURL = Bundle.main.url(forResource: "minecraft_movie_0", withExtension: "mp4") {
+                    playerMinecraft = AVPlayer(url: videoURL)
+                    playerMinecraft?.volume = 1.0
+                    
+                    var videoMaterial = VideoMaterial(avPlayer: playerMinecraft!)
+                    imageEntity.model?.materials = [videoMaterial]
+                    playerMinecraft!.seek(to: .zero)
+                    playerMinecraft!.play()
+                    
+                    NotificationCenter.default.addObserver(forName: .AVPlayerItemDidPlayToEndTime,
+                                                          object: playerMinecraft!.currentItem,
+                                                          queue: .main) { [weak self] _ in
+                        print("First Minecraft video finished playing naturally")
+                        guard let self = self else { return }
+                        
+                        self.waitForUserResponseThenPlayNextVideo(imageEntity: imageEntity,
+                                                                videoType: "minecraft_movie")
                     }
                 }
             } else {
@@ -1211,14 +1350,14 @@ struct ARViewContainer: UIViewRepresentable {
                     player2!.play()
                     
                     // Set up a notification to detect when the first video finishes
-                    NotificationCenter.default.addObserver(forName: .AVPlayerItemDidPlayToEndTime, 
-                                                          object: player2!.currentItem, 
+                    NotificationCenter.default.addObserver(forName: .AVPlayerItemDidPlayToEndTime,
+                                                          object: player2!.currentItem,
                                                           queue: .main) { [weak self] _ in
                         print("First Chanel video finished playing naturally")
                         guard let self = self else { return }
                         
                         // Start speech recognition after the first video
-                        self.waitForUserResponseThenPlayNextVideo(imageEntity: imageEntity, 
+                        self.waitForUserResponseThenPlayNextVideo(imageEntity: imageEntity,
                                                                 videoType: "chanel")
                     }
                 }
