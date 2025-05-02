@@ -8,7 +8,7 @@ import Link from "next/link"
 import { useSession, signOut } from "next-auth/react"
 import SimliAgent from "@/components/SimliAgent"
 import { Logo } from "@/components/logo"
-import { Navbar } from "@/components/ui/navbar"
+import { DynamicNavbar } from "@/components/dynamic-navbar"
 
 export default function ChatPage() {
   const params = useParams()
@@ -146,24 +146,22 @@ export default function ChatPage() {
 
   return (
     <div className="flex flex-col h-screen bg-gray-50">
-      <Navbar />
-      <div className="flex-1 flex flex-col pt-16">
-        <div className="flex items-center justify-between py-4 px-4 bg-gradient-to-r from-pink-50 to-purple-50 border-b border-pink-100">
-          <Link href="/dashboard">
-            <Button variant="ghost" size="sm" className="gap-1.5 rounded-full text-gray-600 hover:bg-gray-50">
-              <ArrowLeft className="h-4 w-4" />
-              <span>Back to Dashboard</span>
-            </Button>
-          </Link>
-          <div className="text-center">
-            <h1 className="text-lg font-medium">
-              Conversation with <span className="text-transparent bg-clip-text bg-gradient-to-r from-pink-600 to-pink-700">{persona.name}</span>
+      <DynamicNavbar />
+      <div className="flex-1 flex flex-col pt-24">
+        <div className="container mx-auto max-w-6xl px-4 pb-16">
+          <div className="flex items-center justify-between mb-8">
+            <h1 className="text-4xl font-bold bg-gradient-to-r from-pink-500 to-violet-500 bg-clip-text text-transparent">
+              Conversation with {persona.name}
             </h1>
+            
+            <Link href="/dashboard">
+              <Button variant="outline" className="rounded-full border-2 border-gray-200 hover:border-gray-300">
+                <ArrowLeft size={16} className="mr-2" />
+                Back to Dashboard
+              </Button>
+            </Link>
           </div>
-          <div className="w-[120px]"></div> {/* Spacer for balance */}
-        </div>
-        
-        <main className="flex-1 py-8 px-4 container mx-auto max-w-6xl">
+          
           <SimliAgent 
             personaId={personaId}
             personaData={{
@@ -173,13 +171,7 @@ export default function ChatPage() {
               faceId: persona.faceId
             }}
           />
-        </main>
-        
-        <footer className="py-4 text-center text-gray-500 text-sm border-t border-gray-100 bg-white/80 backdrop-blur-sm">
-          <div className="container mx-auto max-w-6xl">
-            <p>Powered by <span className="text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-pink-600 font-medium">Slynk AI</span> &copy; {new Date().getFullYear()}</p>
-          </div>
-        </footer>
+        </div>
       </div>
     </div>
   )

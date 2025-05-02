@@ -109,6 +109,24 @@ const config: Config = {
         'smooth-appear': {
           '0%': { opacity: '0', transform: 'scale(0.95)' },
           '100%': { opacity: '1', transform: 'scale(1)' }
+        },
+        'spinner-scale': {
+          '0%, 100%': { transform: 'scaleY(0.7)', opacity: '0.3' },
+          '50%': { transform: 'scaleY(1)', opacity: '1' }
+        },
+        'spinner-rotate': {
+          '0%': { transform: 'rotate(0deg)' },
+          '100%': { transform: 'rotate(360deg)' }
+        },
+        'spinner-dash': {
+          '0%': { 'stroke-dasharray': '1, 150', 'stroke-dashoffset': '0' },
+          '50%': { 'stroke-dasharray': '90, 150', 'stroke-dashoffset': '-35' },
+          '100%': { 'stroke-dasharray': '90, 150', 'stroke-dashoffset': '-124' }
+        },
+        'spinner-glow': {
+          '0%': { opacity: '0.3', filter: 'blur(4px)' },
+          '50%': { opacity: '0.7', filter: 'blur(8px)' },
+          '100%': { opacity: '0.3', filter: 'blur(4px)' }
         }
   		},
   		animation: {
@@ -117,7 +135,11 @@ const config: Config = {
   			fadeIn: 'fadeIn 0.3s ease-out forwards',
         'border-flow': 'border-flow 5s ease infinite',
         'pulse-slow': 'pulse-slow 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-        'smooth-appear': 'smooth-appear 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards'
+        'smooth-appear': 'smooth-appear 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards',
+        'spinner-scale': 'spinner-scale 1.5s ease-in-out infinite',
+        'spinner-rotate': 'spinner-rotate 2s linear infinite',
+        'spinner-dash': 'spinner-dash 1.5s ease-in-out infinite',
+        'spinner-glow': 'spinner-glow 2s ease-in-out infinite'
   		}
   	}
   },

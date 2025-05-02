@@ -3,6 +3,8 @@ import { Inter } from "next/font/google"
 import "./globals.css"
 import type React from "react"
 import { Providers } from "./providers"
+import { DynamicNavbar } from "@/components/dynamic-navbar"
+import { Footer } from "@/components/footer"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -24,7 +26,11 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${inter.className} bg-white text-gray-900 antialiased`}>
-        <Providers>{children}</Providers>
+        <Providers>
+          <DynamicNavbar />
+          <main>{children}</main>
+          <Footer />
+        </Providers>
       </body>
     </html>
   )

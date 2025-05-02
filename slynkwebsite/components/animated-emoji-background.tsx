@@ -1,190 +1,133 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react"
-import { motion } from "framer-motion"
+import React, { useEffect, useState } from 'react'
+import { motion } from 'framer-motion'
 
-interface EmojiParticle {
+type FloatingEmoji = {
+  id: number
   emoji: string
-  initialX: number
-  initialY: number
-  targetX: number
-  targetY: number
+  x: number
+  y: number
   size: number
-  rotation: number
-  opacity: number
+  rotate: number
   duration: number
   delay: number
 }
 
-const EMOJIS = [
-  "👨",
-  "👩",
-  "👱‍♀️",
-  "👱",
-  "👴",
-  "👵",
-  "👲",
-  "👳‍♀️",
-  "👳",
-  "🧔",
-  "👼",
-  "🤖",
-  "👽",
-  "🦸‍♀️",
-  "🦸",
-  "🦹‍♀️",
-  "🦹",
-]
+const EMOJIS = ['✨', '💬', '🎭', '🤖', '💡', '🔮', '🎬', '📱', '💻', '🎯', '🚀', '💼', '🎨', '🎤']
 
 export function AnimatedEmojiBackground() {
-  const containerRef = useRef<HTMLDivElement>(null)
-  const [particles, setParticles] = useState<EmojiParticle[]>([])
-  const [dimensions, setDimensions] = useState({ width: 1000, height: 800 })
-  const [key, setKey] = useState(0) // Force re-render key
+  const [emojis, setEmojis] = useState<FloatingEmoji[]>([])
+  const [dimensions, setDimensions] = useState({
+    width: typeof window !== 'undefined' ? window.innerWidth : 1000,
+    height: typeof window !== 'undefined' ? window.innerHeight : 800
+  })
 
-  // Initialize particles on mount and window resize
   useEffect(() => {
-    if (!containerRef.current) return
-
-    const updateDimensions = () => {
-      if (!containerRef.current) return
-
-      const { width, height } = containerRef.current.getBoundingClientRect()
-      setDimensions({ width, height })
-
-      // Create new particles with proper dimensions
-      const newParticles = Array.from({ length: 20 }).map(() => {
-        const initialX = Math.random() * width
-        const initialY = Math.random() * height
-        
-        return {
-          emoji: EMOJIS[Math.floor(Math.random() * EMOJIS.length)],
-          initialX,
-          initialY,
-          targetX: initialX + (Math.random() * 200 - 100),
-          targetY: initialY + height, // Always move downward
-          size: Math.random() * 20 + 20,
-          rotation: Math.random() * 360,
-          opacity: Math.random() * 0.5 + 0.2,
-          duration: Math.random() * 20 + 15, // Longer durations for smoother movement
-          delay: Math.random() * 2,
-        }
+    // Handle window resize
+    const handleResize = () => {
+      setDimensions({
+        width: window.innerWidth,
+        height: window.innerHeight
       })
-
-      setParticles(newParticles)
     }
 
-    // Initial setup
-    updateDimensions()
+    // Generate initial emojis
+    const generateEmojis = () => {
+      const newEmojis: FloatingEmoji[] = []
+      const count = Math.max(25, Math.floor(dimensions.width / 60))
 
-    // Set up resize listener
-    window.addEventListener('resize', updateDimensions)
+      for (let i = 0; i < count; i++) {
+        newEmojis.push({
+          id: i,
+          emoji: EMOJIS[Math.floor(Math.random() * EMOJIS.length)],
+          x: Math.random() * dimensions.width,
+          y: Math.random() * dimensions.height,
+          size: Math.random() * 25 + 20,
+          rotate: Math.random() * 360,
+          duration: Math.random() * 15 + 15,
+          delay: Math.random() * 5
+        })
+      }
+      setEmojis(newEmojis)
+    }
 
-    // Set up interval to refresh particles periodically
-    const intervalId = setInterval(() => {
-      setKey(prev => prev + 1)
-    }, 30000) // Refresh every 30 seconds to keep it fresh
+    generateEmojis()
+    window.addEventListener('resize', handleResize)
 
     return () => {
-      window.removeEventListener('resize', updateDimensions)
-      clearInterval(intervalId)
+      window.removeEventListener('resize', handleResize)
     }
-  }, [])
+  }, [dimensions.width, dimensions.height])
 
   return (
-    <div ref={containerRef} className="absolute inset-0 overflow-hidden pointer-events-none z-0" key={key}>
-      {particles.map((particle, index) => (
+    <div className="absolute inset-0 overflow-hidden pointer-events-none z-0 opacity-[0.25]">
+      {emojis.map((emoji) => (
         <motion.div
-          key={`${index}-${key}`}
+          key={emoji.id}
           className="absolute select-none"
-          initial={{ 
-            x: particle.initialX, 
-            y: particle.initialY,
-            rotate: 0
+          initial={{
+            x: emoji.x,
+            y: emoji.y,
+            rotate: emoji.rotate,
+            scale: 0
           }}
-          animate={{ 
-            x: particle.targetX, 
-            y: particle.targetY,
-            rotate: particle.rotation * 2
+          animate={{
+            x: [emoji.x, emoji.x + Math.random() * 100 - 50, emoji.x],
+            y: [emoji.y, emoji.y - 100 - Math.random() * 200, emoji.y + 100],
+            rotate: [emoji.rotate, emoji.rotate + (Math.random() > 0.5 ? 180 : -180)],
+            scale: [0, 1, 0.8, 1, 0]
           }}
           transition={{
-            x: { 
-              duration: particle.duration,
-              repeat: Infinity,
-              repeatType: "loop",
-              ease: "linear",
-              delay: particle.delay
-            },
-            y: { 
-              duration: particle.duration,
-              repeat: Infinity,
-              repeatType: "loop",
-              ease: "linear",
-              delay: particle.delay
-            },
-            rotate: { 
-              duration: particle.duration * 1.5,
-              repeat: Infinity,
-              repeatType: "loop",
-              ease: "linear",
-              delay: particle.delay
-            }
+            duration: emoji.duration,
+            delay: emoji.delay,
+            repeat: Infinity,
+            ease: [0.76, 0, 0.24, 1]
           }}
           style={{
-            fontSize: `${particle.size}px`,
-            opacity: particle.opacity,
+            fontSize: `${emoji.size}px`
           }}
         >
-          {particle.emoji}
+          {emoji.emoji}
         </motion.div>
       ))}
-
-      {/* Geometric shapes */}
+      
+      {/* Gradient Blobs */}
       <motion.div 
-        className="absolute top-1/4 left-1/4 w-64 h-64 rounded-full bg-pink-200/10 blur-3xl" 
+        className="absolute rounded-full bg-pink-400/20 blur-[100px] w-[30vw] h-[30vw]"
+        initial={{ x: '10%', y: '20%' }}
         animate={{ 
-          scale: [1, 1.1, 1],
-          opacity: [0.1, 0.2, 0.1],
+          x: ['10%', '15%', '10%'],
+          y: ['20%', '25%', '20%'],
+          scale: [1, 1.1, 1]
         }}
-        transition={{ 
-          repeat: Infinity, 
-          duration: 8,
-          ease: "easeInOut",
-        }}
+        transition={{ duration: 20, repeat: Infinity, ease: "easeInOut" }}
       />
-      <motion.div
-        className="absolute bottom-1/4 right-1/4 w-80 h-80 rounded-full bg-blue-200/10 blur-3xl"
+      
+      <motion.div 
+        className="absolute rounded-full bg-purple-400/20 blur-[100px] w-[40vw] h-[40vw]"
+        initial={{ x: '60%', y: '40%' }}
         animate={{ 
-          scale: [1, 1.15, 1],
-          opacity: [0.1, 0.15, 0.1],
+          x: ['60%', '55%', '60%'],
+          y: ['40%', '35%', '40%'],
+          scale: [1, 1.2, 1]
         }}
-        transition={{ 
-          repeat: Infinity, 
-          duration: 10,
-          ease: "easeInOut",
-          delay: 1
-        }}
+        transition={{ duration: 25, repeat: Infinity, ease: "easeInOut", delay: 5 }}
       />
-      <motion.div
-        className="absolute top-1/2 right-1/3 w-40 h-40 rounded-lg bg-purple-200/10 blur-2xl"
+      
+      <motion.div 
+        className="absolute rounded-full bg-blue-400/20 blur-[100px] w-[25vw] h-[25vw]"
+        initial={{ x: '30%', y: '70%' }}
         animate={{ 
-          scale: [1, 1.2, 1],
-          opacity: [0.1, 0.2, 0.1],
-          rotate: [0, 15, 0]
+          x: ['30%', '35%', '30%'],
+          y: ['70%', '65%', '70%'],
+          scale: [1, 1.1, 1]
         }}
-        transition={{ 
-          repeat: Infinity, 
-          duration: 12,
-          ease: "easeInOut",
-          delay: 2
-        }}
+        transition={{ duration: 18, repeat: Infinity, ease: "easeInOut", delay: 8 }}
       />
-
-      {/* Grid pattern overlay */}
-      <div
-        className="absolute inset-0 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] opacity-10"
-        style={{ backgroundSize: "24px 24px" }}
-      />
+      
+      {/* Noise overlay */}
+      <div className="absolute inset-0 bg-noise opacity-20" />
     </div>
   )
 }

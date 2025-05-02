@@ -18,6 +18,9 @@ import { motion } from "framer-motion"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import Image from "next/image"
 import { generateFaceId, generateVideoPreview } from "@/lib/simli-api"
+import { CircularSpinner } from "@/components/ui/circular-spinner"
+import { Spinner } from "@/components/ui/spinner"
+import { DynamicNavbar } from "@/components/dynamic-navbar"
 
 interface PersonaData {
   id: string
@@ -220,17 +223,13 @@ export default function EditPersonaPage() {
     if (!persona) return
     
     setSaving(true)
+    setError(null)
     
     try {
-      // Create form data for file upload
+      // Prepare data for API request
       const formData = new FormData()
-      formData.append("personaId", persona.id)
       formData.append("name", persona.name)
       formData.append("description", persona.description)
-      
-      if (persona.pageLink) {
-        formData.append("pageLink", persona.pageLink)
-      }
       
       if (persona.systemPrompt) {
         formData.append("systemPrompt", persona.systemPrompt)
@@ -248,6 +247,18 @@ export default function EditPersonaPage() {
         formData.append("voice", persona.voice)
       }
       
+      if (persona.pageLink) {
+        formData.append("pageLink", persona.pageLink)
+      }
+      
+      if (persona.qaPairs && persona.qaPairs.length > 0) {
+        formData.append("qaPairs", JSON.stringify(persona.qaPairs))
+      }
+      
+      if (image) {
+        formData.append("image", image)
+      }
+      
       if (persona.adImage) {
         formData.append("adImage", persona.adImage)
       }
@@ -256,47 +267,29 @@ export default function EditPersonaPage() {
         formData.append("voiceSample", persona.voiceSample)
       }
       
-      // Convert QA pairs to JSON string and append
-      formData.append("qaPairs", JSON.stringify(persona.qaPairs))
-      
-      // Submit form data to API
+      // Send update request
       const response = await fetch(`/api/personas/${persona.id}`, {
-        method: "PATCH",
+        method: "PUT",
         body: formData,
       })
       
       if (!response.ok) {
-        const errorText = await response.text()
-        let errorMessage = `Failed to update persona. Status: ${response.status}`
-        
-        try {
-          const errorData = JSON.parse(errorText)
-          if (errorData.error) {
-            errorMessage = errorData.error
-          }
-        } catch (e) {
-          if (errorText) errorMessage = errorText
-        }
-        
-        throw new Error(errorMessage)
+        throw new Error(`Failed to update persona: ${response.status}`)
       }
       
-      const data = await response.json()
-      
       toast({
-        title: "Success!",
-        description: "Your AI persona has been updated.",
-        variant: "default",
+        title: "Success",
+        description: "Persona updated successfully",
       })
       
-      // Redirect to the dashboard
       router.push("/dashboard")
     } catch (error) {
-      console.error("Error updating persona:", error)
+      console.error("Error saving persona:", error)
+      setError(error instanceof Error ? error.message : "Failed to save persona")
       
       toast({
         title: "Error",
-        description: error instanceof Error ? error.message : "Failed to update persona. Please try again.",
+        description: error instanceof Error ? error.message : "Failed to save persona",
         variant: "destructive",
       })
     } finally {
@@ -304,27 +297,107 @@ export default function EditPersonaPage() {
     }
   }
 
-  if (status === "loading" || loading) {
+  // Generate preview button component
+  const GeneratePreviewButton = () => (
+    <motion.div
+      whileHover={{ scale: 1.03 }}
+      whileTap={{ scale: 0.97 }}
+    >
+      <Button
+        onClick={handleGeneratePreview}
+        disabled={isGeneratingPreview || !persona?.faceId}
+        className={`gap-2 ${persona?.faceId ? 'bg-gradient-to-r from-pink-500 to-purple-600 text-white' : 'bg-gray-300 text-gray-500 cursor-not-allowed'} shadow-md hover:shadow-lg rounded-xl transition-all`}
+      >
+        {isGeneratingPreview ? (
+          <>
+            <CircularSpinner size="sm" variant="gradient" />
+            <span>Generating...</span>
+          </>
+        ) : (
+          <>
+            <Play className="h-4 w-4" />
+            <span>Generate Preview</span>
+          </>
+        )}
+      </Button>
+    </motion.div>
+  )
+
+  // Save button component
+  const SaveButton = () => (
+    <motion.div
+      whileHover={{ scale: 1.03 }}
+      whileTap={{ scale: 0.97 }}
+    >
+      <Button
+        onClick={handleSave}
+        disabled={saving || !persona?.name || !persona?.description}
+        className="gap-2 bg-gradient-to-r from-pink-500 to-purple-600 text-white shadow-md hover:shadow-lg rounded-xl"
+      >
+        {saving ? (
+          <>
+            <CircularSpinner size="sm" variant="gradient" />
+            <span>Saving...</span>
+          </>
+        ) : (
+          <>
+            <Save className="h-4 w-4" />
+            <span>Save Changes</span>
+          </>
+        )}
+      </Button>
+    </motion.div>
+  )
+
+  // Loading state
+  if (loading) {
     return (
-      <div className="flex h-screen items-center justify-center">
-        <div className="text-center">
-          <Loader2 className="mx-auto h-8 w-8 animate-spin text-pink-500" />
-          <p className="mt-2 text-gray-600">Loading...</p>
-        </div>
+      <div className="flex h-screen items-center justify-center bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
+        <motion.div 
+          className="text-center"
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ 
+            type: "spring", 
+            stiffness: 300, 
+            damping: 30 
+          }}
+        >
+          <CircularSpinner size="lg" variant="gradient" label="Loading persona..." />
+        </motion.div>
       </div>
     )
   }
-
-  if (error) {
+  
+  // Error state
+  if (error && !persona) {
     return (
-      <div className="container mx-auto p-6">
-        <div className="rounded-lg bg-red-50 p-4 text-red-500">
-          {error}
-        </div>
-        <div className="mt-4">
-          <Link href="/dashboard">
-            <Button>Back to Dashboard</Button>
-          </Link>
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
+        <DynamicNavbar />
+        <div className="container mx-auto max-w-4xl px-4 pt-24 pb-12">
+          <motion.div 
+            className="bg-white p-8 rounded-2xl shadow-md text-center"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ type: "spring", stiffness: 300, damping: 30 }}
+          >
+            <div className="mb-6 text-red-500">
+              <X className="h-16 w-16 mx-auto" />
+            </div>
+            <h1 className="text-2xl font-bold mb-4">Error Loading Persona</h1>
+            <p className="text-gray-600 mb-6">{error}</p>
+            <motion.div
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <Link href="/dashboard">
+                <Button className="gap-2 bg-gradient-to-r from-pink-500 to-purple-600 text-white shadow-md hover:shadow-lg rounded-xl">
+                  <ArrowLeft className="h-4 w-4" />
+                  Return to Dashboard
+                </Button>
+              </Link>
+            </motion.div>
+          </motion.div>
         </div>
       </div>
     )
@@ -347,7 +420,7 @@ export default function EditPersonaPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Navbar />
+      <DynamicNavbar />
       <div className="container mx-auto max-w-6xl px-4 pt-24 pb-16">
         <div className="w-full max-w-5xl mx-auto p-6">
           <div className="flex items-center justify-between mb-8">
@@ -613,25 +686,7 @@ export default function EditPersonaPage() {
                       Generate Preview
                     </h3>
                     
-                    <Button
-                      type="button"
-                      variant="default"
-                      disabled={!persona.faceId || isGeneratingPreview}
-                      onClick={handleGeneratePreview}
-                      className="w-full bg-gradient-to-r from-green-500 to-teal-500 hover:opacity-90 transition-opacity"
-                    >
-                      {isGeneratingPreview ? (
-                        <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Generating Preview...
-                        </>
-                      ) : (
-                        <>
-                          <Play className="mr-2 h-4 w-4" />
-                          Generate Video Preview
-                        </>
-                      )}
-                    </Button>
+                    <GeneratePreviewButton />
                     
                     {videoPreview && (
                       <div className="mt-4">
@@ -756,23 +811,7 @@ export default function EditPersonaPage() {
               >
                 Cancel
               </Button>
-              <Button 
-                onClick={handleSave}
-                disabled={saving}
-                className="px-8 bg-gradient-to-r from-pink-500 to-purple-600 hover:opacity-90 transition-all shadow-lg"
-              >
-                {saving ? (
-                  <>
-                    <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                    Saving...
-                  </>
-                ) : (
-                  <>
-                    <Save size={16} className="mr-2" />
-                    Save Changes
-                  </>
-                )}
-              </Button>
+              <SaveButton />
             </motion.div>
           </div>
         </div>

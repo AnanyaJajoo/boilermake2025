@@ -1,6 +1,6 @@
 export const metadata = {
-  title: 'Create AI Persona | Slynk',
-  description: 'Create a custom AI persona with a unique face, voice, and personality.',
+  title: 'create - slynk',
+  description: 'create custom interactive live ads.',
 }
 
 export default function CreateLayout({
